@@ -1,0 +1,76 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  cache:
+    caffeine:
+      spec: maximumSize = 1, expireAfterWrite = 10m
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: email, profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: read:user, user:email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+jwt:
+  accessTokenExpiry: 15m  # or 1h, or 3d
+  refreshTokenExpiry: 7d  # or 1h, or 3d
+
+frontend:
+  url: http://localhost:5173
+
+resilience4j.ratelimiter:
+  instances:
+    githubApi:
+      limit-for-period: 5
+      limit-refresh-period: 1s
+      timeout-duration: 500ms
+
+springdoc:
+  group-configs:
+    - group: admin
+      paths-to-match:
+        - /admin/**
+        - /task/**
+        - /category/**
+        - /auth/**
+        - /user/login
+        - /user/logout
+    - group: user
+      paths-to-match:
+        - /user/**
+        - /task/**
+        - /category/**
+        - /auth/**
+
+logging:
+  level:
+    root: info
+    org.springframework:
+      cache: trace
+      security: trace
+

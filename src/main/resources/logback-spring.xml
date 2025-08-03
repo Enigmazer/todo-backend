@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Log format pattern -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
+
+    <!-- Directory for storing logs -->
+    <property name="LOG_PATH" value="logs" />
+
+    <!-- Main rolling file appender -->
+    <appender name="ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/application.log</file>
+
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+
+        <!-- Rolling policy based on size -->
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>10MB</maxFileSize>
+        </triggeringPolicy>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/application.%i.log</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>10</maxIndex>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Console output appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Application logger: your app package only -->
+    <logger name="com.Enigmazer.todo_app" level="TRACE" additivity="false">
+        <appender-ref ref="ROLLING_FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+
+    <!-- Suppress verbose logs from Spring framework packages in file -->
+    <logger name="org.springframework" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <!-- NO rolling file appender here, so spring logs don't go to file -->
+    </logger>
+
+    <logger name="org.hibernate" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE" />
+    </logger>
+
+    <!-- Root logger, for anything else, send only to console at WARN level -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+</configuration>
