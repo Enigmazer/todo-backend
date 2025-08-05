@@ -1,7 +1,6 @@
 package com.Enigmazer.todo_app.config.security;
 
 import com.Enigmazer.todo_app.service.CustomOAuth2UserService;
-import com.Enigmazer.todo_app.service.user.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +15,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -48,7 +46,7 @@ public class SpringSecurity {
                         .requestMatchers(
                                 "/user/login",
                                 "/oauth2/**",
-                                "auth/**",
+                                "/auth/refresh",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"     // Main Swagger UI page

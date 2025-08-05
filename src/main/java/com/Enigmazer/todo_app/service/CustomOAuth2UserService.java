@@ -4,7 +4,6 @@ import com.Enigmazer.todo_app.constants.CacheNameConstants;
 import com.Enigmazer.todo_app.constants.RoleConstants;
 import com.Enigmazer.todo_app.model.User;
 import com.Enigmazer.todo_app.repository.UserRepository;
-import com.Enigmazer.todo_app.service.user.UserDetailsServiceImpl;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +18,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * CustomOAuth2UserService handles Oauth2 related operations
@@ -34,7 +30,6 @@ import java.util.Set;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-    private final UserDetailsServiceImpl userDetailsService;
 
     /**
      * loadUser register/verify the user and return the authenticated user
@@ -50,7 +45,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = new DefaultOAuth2UserService().loadUser(request);
 
         String provider = request.getClientRegistration().getRegistrationId(); // google or github
-        String providerId = oAuth2User.getAttribute("sub");
+        String providerId =
+                "google".equals(provider) ?
+                        oAuth2User.getAttribute("sub") :
+                        Objects.requireNonNull(oAuth2User.getAttribute("id")).toString();
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
 

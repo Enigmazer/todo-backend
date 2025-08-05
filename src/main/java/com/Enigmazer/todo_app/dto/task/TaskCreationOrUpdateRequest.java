@@ -6,12 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
-import org.aspectj.bridge.IMessage;
-import org.aspectj.bridge.Message;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -39,7 +36,7 @@ public class TaskCreationOrUpdateRequest {
             example = "2025-01-31",
             type = "string"
     )
-    private LocalDate dueDate;
+    private Instant dueDate;
 
     @Schema(
             description = "Id of the category you want to set.",

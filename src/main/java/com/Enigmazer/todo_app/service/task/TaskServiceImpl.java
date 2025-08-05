@@ -9,8 +9,8 @@ import com.Enigmazer.todo_app.model.User;
 import com.Enigmazer.todo_app.repository.TaskRepository;
 import com.Enigmazer.todo_app.service.JWTService;
 import com.Enigmazer.todo_app.service.category.CategoryService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
@@ -21,20 +21,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
     private final JWTService jwtService;
     private final CategoryService categoryService;
     private final TaskMapper taskMapper;
-
-    @Autowired
-    public TaskServiceImpl(TaskRepository taskRepository, JWTService jwtService, CategoryService categoryService, TaskMapper taskMapper) {
-        this.taskRepository = taskRepository;
-        this.jwtService = jwtService;
-        this.categoryService = categoryService;
-        this.taskMapper = taskMapper;
-    }
 
     /**
      * Adds a new task to the database.

@@ -8,16 +8,9 @@ import com.Enigmazer.todo_app.mapper.UserMapper;
 import com.Enigmazer.todo_app.model.User;
 import com.Enigmazer.todo_app.repository.UserRepository;
 import com.Enigmazer.todo_app.service.JWTService;
-import com.Enigmazer.todo_app.service.cookie.CookieService;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,7 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
+import java.time.Instant;
 
 /**
  * UserServiceImpl is the implementation of {@link UserService} that
@@ -111,6 +104,7 @@ public class UserServiceImpl implements UserService {
         }
 
         currentUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        currentUser.setUpdatedAt(Instant.now());
         userRepository.save(currentUser);
         log.info("Password set successfully for: {}", request.getEmail());
     }
@@ -132,6 +126,7 @@ public class UserServiceImpl implements UserService {
         }
 
         currentUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        currentUser.setUpdatedAt(Instant.now());
         userRepository.save(currentUser);
         log.info("Password successfully updated for: {}", currentUser.getEmail());
     }

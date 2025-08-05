@@ -134,9 +134,9 @@ public class TaskController {
      * @param page    Page number
      * @return Page of matching tasks
      */
-    @GetMapping("/search/{keyword}")
+    @GetMapping("/search")
     public ResponseEntity<Page<TaskResponseDTO>> searchInTasks(
-            @PathVariable String keyword,
+            @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page) {
 
         log.info("[TaskController] Search request received (keyword='{}', page={})", keyword, page);

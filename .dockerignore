@@ -1,0 +1,15 @@
+target
+.git
+.idea
+.vscode
+*.iml
+*.log
+node_modules
+.DS_Store
+/.env
+/README.md
+/src/main/resources/keys/
+/.gitignore
+/clientSecrets/
+/src/main/java/com/Enigmazer/todo_app/config/SpringSecurityBackendOnlySupport.java
+/src/main/resources/application-dev.yml

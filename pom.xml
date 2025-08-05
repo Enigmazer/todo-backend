@@ -31,12 +31,6 @@
 	</properties>
 
 	<dependencies>
-		<!-- Swagger OpenAPI (springdoc) -->
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.8.9</version>
-		</dependency>
 		<!-- Enables Spring Data JPA for working with relational databases using Hibernate ORM -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -63,14 +57,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
-		<!-- Adds developer tools for faster development: automatic restart, live reload,
-		and enhanced debugging support -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
 		</dependency>
 		<!-- PostgreSQL JDBC driver to enable database connectivity with PostgreSQL -->
 		<dependency>
@@ -180,8 +166,45 @@
 			<artifactId>mapstruct</artifactId>
 			<version>1.5.5.Final</version>
 		</dependency>
-
+		<!-- Always include annotation library (compile time only) -->
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>2.2.34</version>
+		</dependency>
 	</dependencies>
+
+
+	<profiles>
+		<!-- Dev profile: adds Swagger -->
+		<profile>
+			<id>dev</id>
+			<dependencies>
+				<!-- Swagger OpenAPI (springdoc) -->
+				<dependency>
+					<groupId>org.springdoc</groupId>
+					<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+					<version>2.8.9</version>
+				</dependency>
+				<!-- Adds developer tools for faster development: automatic restart, live reload,
+    			and enhanced debugging support -->
+				<dependency>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-devtools</artifactId>
+					<scope>runtime</scope>
+					<optional>true</optional>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		<!-- Prod profile: no Swagger -->
+		<profile>
+			<id>prod</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+		</profile>
+	</profiles>
 
 	<build>
 		<plugins>

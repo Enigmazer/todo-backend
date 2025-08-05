@@ -9,10 +9,14 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, String> {
-    Optional<RefreshToken> findByTokenAndUser(String token, User user);
+    Optional<RefreshToken> findByToken(String token);
+
     @Query("SELECT r.user FROM RefreshToken r WHERE r.token = :token")
     Optional<User> findUserByToken(@Param("token") String token); // ✅ Correct
 
+    Optional<RefreshToken> findFirstByUserIdOrderByCreatedAtDesc(Long userId);
+
     void deleteByToken(String token);
+
     void deleteByUser(User user);
 }

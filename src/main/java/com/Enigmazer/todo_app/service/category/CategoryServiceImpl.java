@@ -7,6 +7,7 @@ import com.Enigmazer.todo_app.mapper.CategoryMapper;
 import com.Enigmazer.todo_app.model.Category;
 import com.Enigmazer.todo_app.repository.CategoryRepository;
 import com.Enigmazer.todo_app.service.JWTService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -20,18 +21,13 @@ import java.util.List;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final JWTService jwtService;
     private final CategoryMapper categoryMapper;
-
-    public CategoryServiceImpl(CategoryRepository categoryRepository, JWTService jwtService, CategoryMapper categoryMapper) {
-        this.categoryRepository = categoryRepository;
-        this.jwtService = jwtService;
-        this.categoryMapper = categoryMapper;
-    }
-
+    
     /**
      * Adds a new category for the currently authenticated user.
      *
@@ -99,8 +95,13 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = getCategoryById(categoryId);
 
         if (category.isGlobal()) {
-            log.error("[CategoryService] Attempted to delete a global category (ID: {})", categoryId);
+            log.debug("[CategoryService] Attempted to delete a global category (ID: {})", categoryId);
             throw new IllegalArgumentException("Global categories can't be deleted");
+        }
+
+        if (categoryRepository.countTasksByCategoryId(categoryId) > 0){
+            log.debug("[CategoryService] Attempted to delete a category (ID: {}) which belongs to a task.", categoryId);
+            throw new IllegalArgumentException("Category can not be deleted because it belongs to a task.");
         }
 
         categoryRepository.delete(category);

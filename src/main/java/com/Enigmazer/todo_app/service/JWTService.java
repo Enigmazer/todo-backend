@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,15 +41,16 @@ public class JWTService {
     private final KeyPair keyPair;
     private final RefreshTokenRepository refreshTokenRepository;
 
+
     @Autowired
     public JWTService(UserRepository userRepository,
                       TokenBlacklistService tokenBlacklistService,
                       RefreshTokenRepository refreshTokenRepository,
-                      KeyLoader keyLoader) throws Exception {
+                      KeyLoader keyLoader){
         this.userRepository = userRepository;
         this.tokenBlacklistService = tokenBlacklistService;
         this.refreshTokenRepository = refreshTokenRepository;
-        this.keyPair = keyLoader.loadKeyPair("keys/public_key.pem", "keys/private_key.pem");
+        this.keyPair = keyLoader.loadKeyPair("public_key.pem", "private_key.pem");
     }
 
     public TokenPair generateTokens(String email){
@@ -111,18 +111,17 @@ public class JWTService {
         if (!isRefreshTokenValid(refreshToken)) {
             throw new RuntimeException("Invalid refresh token");
         }
-        User user = refreshTokenRepository.findUserByToken(refreshToken)
-                .orElseThrow(() -> new RuntimeException("No user found with this token"));
 
-        return generateTokens(user.getEmail());
+        return generateTokens(
+                refreshTokenRepository.findUserByToken(refreshToken)
+                    .orElseThrow(() -> new RuntimeException("No user found with this token"))
+                    .getEmail()
+        );
     }
 
     public boolean isRefreshTokenValid(String refreshToken){
-        User user = refreshTokenRepository.findUserByToken(refreshToken)
-                .orElseThrow(() -> new RuntimeException("No user found with this token"));
-
-        return refreshTokenRepository.findByTokenAndUser(refreshToken, user)
-                .filter(rf -> rf.getExpiry().isAfter(Instant.now()))
+        return refreshTokenRepository.findByToken(refreshToken)
+                .filter(rf -> rf.getExpiry().isAfter(Instant.now()) && !rf.isRevoked())
                 .isPresent();
     }
 

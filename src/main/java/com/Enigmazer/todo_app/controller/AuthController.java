@@ -1,16 +1,19 @@
 package com.Enigmazer.todo_app.controller;
 
 import com.Enigmazer.todo_app.dto.token.TokenPair;
+import com.Enigmazer.todo_app.exception.CustomExceptions.ResourceNotFoundException;
+import com.Enigmazer.todo_app.model.RefreshToken;
+import com.Enigmazer.todo_app.repository.RefreshTokenRepository;
 import com.Enigmazer.todo_app.service.JWTService;
 import com.Enigmazer.todo_app.service.cookie.CookieService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,9 +27,10 @@ public class AuthController {
 
     private final JWTService jwtService;
     private final CookieService cookieService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String, String>> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Map<String, String>> refreshAccessToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         String refreshToken = null;
 
@@ -48,9 +52,24 @@ public class AuthController {
 
         ResponseCookie refreshCookie = cookieService.buildRefreshTokenCookie(tokenPair.refreshToken());
 
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(Map.of("accessToken", tokenPair.accessToken()));
+    }
 
-        return ResponseEntity.ok(Map.of("accessToken", tokenPair.accessToken()));
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/store-refresh-token")
+    public ResponseEntity<Map<String, String>> storeRefreshToken() {
+
+        RefreshToken refreshToken = refreshTokenRepository
+                .findFirstByUserIdOrderByCreatedAtDesc(jwtService.getCurrentUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("No refresh token found for this user."));
+        String refreshTokenString = refreshToken.getToken();
+        ResponseCookie refreshCookie = cookieService.buildRefreshTokenCookie(refreshTokenString);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .build();
     }
 
 }

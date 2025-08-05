@@ -10,10 +10,11 @@ public class CookieService {
 
     public ResponseCookie buildRefreshTokenCookie(String refreshToken) {
         return ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true)
-                .secure(false)   // false for development
+                .httpOnly(true) // Prevent JS access
+                .secure(true)   // true in production (HTTPS required)
                 .path("/")
-                .sameSite("Lax")    // not "Strict" for development
+                .sameSite("None") // "None" because using cross-site
+                .partitioned(true)
                 .maxAge(Duration.ofDays(7))
                 .build();
     }
@@ -21,8 +22,9 @@ public class CookieService {
     public ResponseCookie clearRefreshTokenCookie() {
         return ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(true) // match production setting
                 .path("/")
+                .partitioned(true)
                 .maxAge(0)
                 .build();
     }

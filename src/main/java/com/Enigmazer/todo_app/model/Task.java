@@ -2,12 +2,11 @@ package com.Enigmazer.todo_app.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
+
 
 @Entity
 @Getter
@@ -33,16 +32,16 @@ public class Task {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private LocalDate dueDate;
+    private Instant dueDate;
 
     @Column(nullable = false)
     private boolean isCompleted;
 
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(nullable = false)
-    private LocalDateTime lastUpdatedAt;
+    private Instant lastUpdatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
@@ -56,12 +55,12 @@ public class Task {
     @PrePersist
     public void onCreate(){
         this.isCompleted = false;
-        this.createdAt = LocalDateTime.now();
-        this.lastUpdatedAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
+        this.lastUpdatedAt = Instant.now();
     }
 
     @PreUpdate
     public void onUpdate(){
-        this.lastUpdatedAt = LocalDateTime.now();
+        this.lastUpdatedAt = Instant.now();
     }
 }

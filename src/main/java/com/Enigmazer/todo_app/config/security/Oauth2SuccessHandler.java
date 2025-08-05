@@ -8,8 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -40,7 +38,6 @@ public class Oauth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final OAuth2FailureRedirectHandler authErrorHandler;
     private final JWTService jwtService;
-    private final CookieService cookieService;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -62,13 +59,14 @@ public class Oauth2SuccessHandler implements AuthenticationSuccessHandler {
             // Generate JWT token
             TokenPair tokenPair = jwtService.generateTokens(email);
 
-            // Set Refresh Token in Secure HttpOnly Cookie
-            ResponseCookie refreshCookie = cookieService.buildRefreshTokenCookie(tokenPair.refreshToken());
-            response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+//            // Set Refresh Token in Secure HttpOnly Cookie
+//            ResponseCookie refreshCookie = cookieService.buildRefreshTokenCookie(tokenPair.refreshToken());
+//            response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
             // Redirect to frontend with access token only
             String redirectUrl = frontendUrl + "/oauth-callback?accessToken=" + tokenPair.accessToken();
             response.sendRedirect(redirectUrl);
+
         } catch (Exception e) {
             try {
                 String message = e.getMessage();

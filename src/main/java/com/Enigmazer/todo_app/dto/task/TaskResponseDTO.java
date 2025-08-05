@@ -6,8 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -17,9 +16,9 @@ public class TaskResponseDTO {
     private Long id;
     private String title;
     private String description;
-    private LocalDate dueDate;
+    private Instant dueDate;
     private boolean isCompleted;
-    private LocalDateTime createdAt;
-    private LocalDateTime lastUpdatedAt;
+    private Instant createdAt;
+    private Instant lastUpdatedAt;
     private CategoryResponseDTO category;
 }

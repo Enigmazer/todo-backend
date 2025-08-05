@@ -52,7 +52,7 @@
     </logger>
 
     <!-- Root logger, for anything else, send only to console at WARN level -->
-    <root level="WARN">
+    <root level="error">
         <appender-ref ref="CONSOLE" />
     </root>
 
