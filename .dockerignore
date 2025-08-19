@@ -13,3 +13,4 @@ node_modules
 /clientSecrets/
 /src/main/java/com/Enigmazer/todo_app/config/SpringSecurityBackendOnlySupport.java
 /src/main/resources/application-dev.yml
+/src/main/java/com/Enigmazer/todo_app/other/

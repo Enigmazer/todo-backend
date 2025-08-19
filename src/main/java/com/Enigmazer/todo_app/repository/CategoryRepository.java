@@ -36,6 +36,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
         \s""")
     Long countTasksByCategoryId(@Param("id") Long categoryId);
 
-
-
+    @Query("SELECT count(c) FROM Category c WHERE c.user.id = :userId OR c.isGlobal = true")
+    Integer totalCategoriesOfUser(@Param("userId") Long userId);
 }

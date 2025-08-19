@@ -107,4 +107,20 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.delete(category);
         log.info("[CategoryService] Category deleted successfully (ID: {})", categoryId);
     }
+
+    @Override
+    public Integer totalCategoriesOfUser(){
+        return categoryRepository.totalCategoriesOfUser(jwtService.getCurrentUser().getId());
+    }
+
+    @Override
+    public CategoryResponseDTO updateCategory(Long categoryId,CategoryCreationRequest category){
+        Category existingCategory = getCategoryById(categoryId);
+        if (existingCategory.isGlobal()) {
+            log.debug("[CategoryService] Attempted to updates a global category (ID: {})", categoryId);
+            throw new IllegalArgumentException("Global categories can't be updated");
+        }
+        existingCategory.setName(category.getName());
+        return categoryMapper.toDto(categoryRepository.save(existingCategory));
+    }
 }

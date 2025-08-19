@@ -1,11 +1,8 @@
 package com.Enigmazer.todo_app.service.user;
 
 import com.Enigmazer.todo_app.dto.token.TokenPair;
-import com.Enigmazer.todo_app.dto.user.PasswordChangeRequest;
 import com.Enigmazer.todo_app.dto.user.UserLoginRequest;
 import com.Enigmazer.todo_app.dto.user.UserResponseDTO;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 
 /**
  * UserService defines the contract for user-related operations,
@@ -30,26 +27,26 @@ public interface UserService {
      */
     void logout(String token);
 
-    /**
-     * Checks if the currently logged-in user's account has a password set.
-     *
-     * @return true if a password is set, false otherwise
-     */
-    boolean isPasswordAvailable();
+//    /**
+//     * Checks if the currently logged-in user's account has a password set.
+//     *
+//     * @return true if a password is set, false otherwise
+//     */
+//    boolean isPasswordAvailable();
 
-    /**
-     * Sets a new password for the currently logged-in user if no password has been set before.
-     *
-     * @param request a {@link UserLoginRequest} containing the email and new password
-     */
-    void setAPassword(@Valid UserLoginRequest request);
+//    /**
+//     * Sets a new password for the currently logged-in user if no password has been set before.
+//     *
+//     * @param request a {@link UserLoginRequest} containing the email and new password
+//     */
+//    void setAPassword(@Valid UserLoginRequest request);
 
     /**
      * Changes the password of the currently logged-in user after verifying the old password.
      *
-     * @param request a {@link PasswordChangeRequest} containing the email, old password, and new password
+     * @param request a {@link UserLoginRequest} containing the email and password
      */
-    void changePassword(PasswordChangeRequest request);
+    void changePassword(UserLoginRequest request);
 
     /**
      * Retrieves public details of the currently logged-in user.

@@ -62,6 +62,12 @@ public class CategoryController {
         return ResponseEntity.ok(categories);
     }
 
+    @PutMapping("/update/{categoryId}")
+    public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable long categoryId,
+                                                              @Valid @RequestBody CategoryCreationRequest category){
+        return ResponseEntity.ok(categoryService.updateCategory(categoryId,category));
+    }
+
     /**
      * Delete a category by its ID (must belong to current user).
      *
@@ -74,5 +80,10 @@ public class CategoryController {
         categoryService.deleteCategory(categoryId);
         log.info("Category with ID: {} deleted successfully", categoryId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/total")
+    public ResponseEntity<Integer> totalCategoriesOfUser(){
+        return ResponseEntity.ok(categoryService.totalCategoriesOfUser());
     }
 }

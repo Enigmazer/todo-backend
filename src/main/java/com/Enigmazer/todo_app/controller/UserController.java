@@ -1,18 +1,15 @@
 package com.Enigmazer.todo_app.controller;
 
 import com.Enigmazer.todo_app.dto.token.TokenPair;
-import com.Enigmazer.todo_app.dto.user.PasswordChangeRequest;
 import com.Enigmazer.todo_app.dto.user.UserLoginRequest;
 import com.Enigmazer.todo_app.dto.user.UserResponseDTO;
 import com.Enigmazer.todo_app.service.cookie.CookieService;
 import com.Enigmazer.todo_app.service.user.UserDetailsServiceImpl;
 import com.Enigmazer.todo_app.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -87,29 +84,30 @@ public class UserController {
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .body("Logged out successfully.");
     }
-    /**
-     * check if the user's account have a password or not
-     *
-     * @return true if account have password set and false if it doesn't
-     */
-    @GetMapping("/password-check")
-    public ResponseEntity<Boolean> isPasswordAvailable(){
-        Boolean passwordAvailable = userService.isPasswordAvailable();
-        log.info("check successful and result is: {}", passwordAvailable);
-        return ResponseEntity.ok(passwordAvailable);
-    }
 
-    /**
-     * set a password to the account only if it doesn't have one
-     *
-     * @param request contains email and a password they want to set
-     */
-    @PostMapping("/set-password")
-    public ResponseEntity<String> setAPassword(@Valid @RequestBody UserLoginRequest request) {
-        log.info("password set request for: {}", request.getEmail());
-        userService.setAPassword(request);
-        return ResponseEntity.ok("Password set successfully");
-    }
+//    /**
+//     * check if the user's account have a password or not
+//     *
+//     * @return true if account have password set and false if it doesn't
+//     */
+//    @GetMapping("/password-check")
+//    public ResponseEntity<Boolean> isPasswordAvailable(){
+//        Boolean passwordAvailable = userService.isPasswordAvailable();
+//        log.info("check successful and result is: {}", passwordAvailable);
+//        return ResponseEntity.ok(passwordAvailable);
+//    }
+
+//    /**
+//     * set a password to the account only if it doesn't have one
+//     *
+//     * @param request contains email and a password they want to set
+//     */
+//    @PostMapping("/set-password")
+//    public ResponseEntity<String> setAPassword(@Valid @RequestBody UserLoginRequest request) {
+//        log.info("password set request for: {}", request.getEmail());
+//        userService.setAPassword(request);
+//        return ResponseEntity.ok("Password set successfully");
+//    }
 
     /**
      * change the password of the account
@@ -117,7 +115,7 @@ public class UserController {
      * @param request   contains email, old and new passwords
      */
     @PostMapping("/change-password")
-    public ResponseEntity<String> changePassword(@Valid @RequestBody PasswordChangeRequest request) {
+    public ResponseEntity<String> changePassword(@Valid @RequestBody UserLoginRequest request) {
         log.info("password change request for: {}", request.getEmail());
         userService.changePassword(request);
         return ResponseEntity.ok("Password changed successfully");

@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * TaskController handles all task-related endpoints.
  * <p>
@@ -116,14 +118,13 @@ public class TaskController {
     /**
      * Deletes a task by ID.
      *
-     * @param taskId Task ID to delete
+     * @param taskIds Task ID to delete
      * @return HTTP 204 if successful
      */
-    @DeleteMapping("/{taskId}")
-    public ResponseEntity<Void> deleteTask(@PathVariable long taskId) {
-        log.info("[TaskController] Delete request for taskId={}", taskId);
-        taskService.deleteTask(taskId);
-        log.info("[TaskController] Task deleted (taskId={})", taskId);
+    @DeleteMapping
+    public ResponseEntity<Void> deleteTask(@RequestBody List<Long> taskIds) {
+        taskService.deleteTask(taskIds);
+        log.info("[TaskController] Task deleted (taskId={})", taskIds);
         return ResponseEntity.noContent().build();
     }
 
@@ -144,6 +145,20 @@ public class TaskController {
         return wrapPageResponse(results);
     }
 
+    @GetMapping("/total")
+    public ResponseEntity<Integer> totalTasksOfUser(){
+        return ResponseEntity.ok(taskService.totalTasksOfUser());
+    }
+
+    @GetMapping("/completed-total")
+    public ResponseEntity<Integer> totalCompletedTasksOfUser(){
+        return ResponseEntity.ok(taskService.totalCompletedTasksOfUser());
+    }
+
+    @GetMapping("/category-total/{categoryId}")
+    public ResponseEntity<Integer> totalTasksOfUserInCategory(@PathVariable Long categoryId){
+        return ResponseEntity.ok(taskService.totalTasksOfUserInCategory(categoryId));
+    }
     /**
      * Helper method to wrap paginated responses.
      *

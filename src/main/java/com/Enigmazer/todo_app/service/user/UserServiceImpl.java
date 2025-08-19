@@ -1,14 +1,12 @@
 package com.Enigmazer.todo_app.service.user;
 
 import com.Enigmazer.todo_app.dto.token.TokenPair;
-import com.Enigmazer.todo_app.dto.user.PasswordChangeRequest;
 import com.Enigmazer.todo_app.dto.user.UserLoginRequest;
 import com.Enigmazer.todo_app.dto.user.UserResponseDTO;
 import com.Enigmazer.todo_app.mapper.UserMapper;
 import com.Enigmazer.todo_app.model.User;
 import com.Enigmazer.todo_app.repository.UserRepository;
 import com.Enigmazer.todo_app.service.JWTService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -73,41 +71,41 @@ public class UserServiceImpl implements UserService {
         log.info("User {} is successfully logged out.", email);
     }
 
-    /**
-     * Checks if the currently authenticated user has a password already set.
-     *
-     * @return true if a password is set, false otherwise
-     */
-    @Override
-    public boolean isPasswordAvailable() {
-        log.info("Checking if this account has a password set");
-        String password = jwtService.getCurrentUser().getPassword();
-        return password != null && !password.isBlank();
-    }
+//    /**
+//     * Checks if the currently authenticated user has a password already set.
+//     *
+//     * @return true if a password is set, false otherwise
+//     */
+//    @Override
+//    public boolean isPasswordAvailable() {
+//        log.info("Checking if this account has a password set");
+//        String password = jwtService.getCurrentUser().getPassword();
+//        return password != null && !password.isBlank();
+//    }
 
-    /**
-     * Sets a password for the currently authenticated user if they don't already have one.
-     *
-     * @param request the password to set, wrapped in {@link UserLoginRequest}
-     */
-    @Override
-    public void setAPassword(@Valid UserLoginRequest request) {
-        log.info("Password set request for user: {}", request.getEmail());
-        User currentUser = jwtService.getCurrentUser();
-
-        compareEmail(currentUser.getEmail(), request.getEmail());
-
-        String pass = currentUser.getPassword();
-        if (pass != null && !pass.isBlank()) {
-            log.error("User already has a password set: {}", currentUser.getEmail());
-            throw new IllegalArgumentException("You already have a password set.");
-        }
-
-        currentUser.setPassword(passwordEncoder.encode(request.getPassword()));
-        currentUser.setUpdatedAt(Instant.now());
-        userRepository.save(currentUser);
-        log.info("Password set successfully for: {}", request.getEmail());
-    }
+//    /**
+//     * Sets a password for the currently authenticated user if they don't already have one.
+//     *
+//     * @param request the password to set, wrapped in {@link UserLoginRequest}
+//     */
+//    @Override
+//    public void setAPassword(@Valid UserLoginRequest request) {
+//        log.info("Password set request for user: {}", request.getEmail());
+//        User currentUser = jwtService.getCurrentUser();
+//
+//        compareEmail(currentUser.getEmail(), request.getEmail());
+//
+//        String pass = currentUser.getPassword();
+//        if (pass != null && !pass.isBlank()) {
+//            log.error("User already has a password set: {}", currentUser.getEmail());
+//            throw new IllegalArgumentException("You already have a password set.");
+//        }
+//
+//        currentUser.setPassword(passwordEncoder.encode(request.getPassword()));
+//        currentUser.setUpdatedAt(Instant.now());
+//        userRepository.save(currentUser);
+//        log.info("Password set successfully for: {}", request.getEmail());
+//    }
 
     /**
      * Changes the password for the current user after verifying the old password.
@@ -115,17 +113,17 @@ public class UserServiceImpl implements UserService {
      * @param request contains email, old password, and new password
      */
     @Override
-    public void changePassword(PasswordChangeRequest request) {
+    public void changePassword(UserLoginRequest request) {
         log.info("Password change request for: {}", request.getEmail());
         User currentUser = jwtService.getCurrentUser();
         compareEmail(currentUser.getEmail(), request.getEmail());
 
-        if (!passwordEncoder.matches(request.getOldPassword(), currentUser.getPassword())) {
-            log.error("Old password is incorrect for: {}", currentUser.getEmail());
-            throw new IllegalArgumentException("Old password is incorrect.");
-        }
+//        if (!passwordEncoder.matches(request.getOldPassword(), currentUser.getPassword())) {
+//            log.error("Old password is incorrect for: {}", currentUser.getEmail());
+//            throw new IllegalArgumentException("Old password is incorrect.");
+//        }
 
-        currentUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        currentUser.setPassword(passwordEncoder.encode(request.getPassword()));
         currentUser.setUpdatedAt(Instant.now());
         userRepository.save(currentUser);
         log.info("Password successfully updated for: {}", currentUser.getEmail());

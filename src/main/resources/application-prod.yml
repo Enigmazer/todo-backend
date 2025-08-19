@@ -6,6 +6,12 @@ spring:
     redis:
       url: ${REDIS_URL}
 
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 resilience4j.ratelimiter:
   instances:
     githubApi:

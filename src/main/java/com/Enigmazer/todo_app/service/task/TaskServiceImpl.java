@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * {@code TaskServiceImpl} provides the business logic for managing tasks.
  * It supports creating, updating, completing, searching, and deleting tasks,
@@ -162,13 +164,13 @@ public class TaskServiceImpl implements TaskService {
     /**
      * Deletes a task after validating ownership.
      *
-     * @param taskId ID of the task
+     * @param taskIds ID of the task
      */
     @Override
-    public void deleteTask(long taskId) {
-        log.info("Deleting task ID: {}", taskId);
-        taskRepository.delete(getTaskById(taskId));
-        log.info("Task ID: {} deleted", taskId);
+    public void deleteTask(List<Long> taskIds) {
+        log.info("Deleting task ID: {}", taskIds);
+        taskRepository.deleteTasks(taskIds, jwtService.getCurrentUser().getId());
+        log.info("Task ID: {} deleted", taskIds);
     }
 
     /**
@@ -190,5 +192,20 @@ public class TaskServiceImpl implements TaskService {
 
         Pageable pageable = PageRequest.of(page, 10);
         return taskRepository.searchTask(userId, keyword, pageable).map(taskMapper::toDto);
+    }
+
+    @Override
+    public Integer totalTasksOfUser(){
+        return taskRepository.totalTasksOfUser(jwtService.getCurrentUser().getId());
+    }
+
+    @Override
+    public Integer totalCompletedTasksOfUser(){
+        return taskRepository.totalCompletedTasksOfUser(jwtService.getCurrentUser().getId());
+    }
+
+    @Override
+    public Integer totalTasksOfUserInCategory(Long categoryId){
+        return taskRepository.totalTasksOfUserInCategory(jwtService.getCurrentUser().getId(), categoryId);
     }
 }

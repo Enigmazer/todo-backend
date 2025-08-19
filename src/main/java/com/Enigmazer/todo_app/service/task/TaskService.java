@@ -5,6 +5,8 @@ import com.Enigmazer.todo_app.dto.task.TaskResponseDTO;
 import com.Enigmazer.todo_app.model.Task;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 public interface TaskService {
 
     TaskResponseDTO addTask(TaskCreationOrUpdateRequest task);
@@ -17,8 +19,13 @@ public interface TaskService {
 
     TaskResponseDTO updateTask(long taskId, TaskCreationOrUpdateRequest task) ;
 
-    void deleteTask(long taskId) ;
+    void deleteTask(List<Long> taskIds) ;
 
     Page<TaskResponseDTO> searchInTask(String keyword, int page);
 
+    Integer totalTasksOfUser();
+
+    Integer totalCompletedTasksOfUser();
+
+    Integer totalTasksOfUserInCategory(Long categoryId);
 }

@@ -166,11 +166,11 @@
 			<artifactId>mapstruct</artifactId>
 			<version>1.5.5.Final</version>
 		</dependency>
-		<!-- Always include annotation library (compile time only) -->
+		<!-- Swagger OpenAPI (springdoc) -->
 		<dependency>
-			<groupId>io.swagger.core.v3</groupId>
-			<artifactId>swagger-annotations</artifactId>
-			<version>2.2.34</version>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.8.9</version>
 		</dependency>
 	</dependencies>
 
@@ -180,12 +180,6 @@
 		<profile>
 			<id>dev</id>
 			<dependencies>
-				<!-- Swagger OpenAPI (springdoc) -->
-				<dependency>
-					<groupId>org.springdoc</groupId>
-					<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-					<version>2.8.9</version>
-				</dependency>
 				<!-- Adds developer tools for faster development: automatic restart, live reload,
     			and enhanced debugging support -->
 				<dependency>

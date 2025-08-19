@@ -15,4 +15,8 @@ public interface CategoryService {
     Category getCategoryById(Long categoryId);
 
     void deleteCategory(Long categoryId);
+
+    Integer totalCategoriesOfUser();
+
+    CategoryResponseDTO updateCategory(Long categoryId, CategoryCreationRequest category);
 }
