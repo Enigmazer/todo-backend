@@ -18,6 +18,8 @@ public class TaskResponseDTO {
     private String description;
     private Instant dueDate;
     private boolean isCompleted;
+    private boolean isEmailEnabled;
+    private boolean isReminderSent;
     private Instant createdAt;
     private Instant lastUpdatedAt;
     private CategoryResponseDTO category;

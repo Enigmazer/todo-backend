@@ -2,7 +2,6 @@ package com.Enigmazer.todo_app.service.admin;
 
 import com.Enigmazer.todo_app.dto.category.CategoryCreationRequest;
 import com.Enigmazer.todo_app.dto.category.CategoryResponseDTO;
-import com.Enigmazer.todo_app.dto.user.UserLoginRequest;
 import com.Enigmazer.todo_app.dto.user.UserRegistrationRequest;
 import com.Enigmazer.todo_app.model.User;
 
@@ -19,7 +18,7 @@ public interface AdminService {
      *
      * @param user DTO containing email and password
      */
-    void registerUser(UserRegistrationRequest user);
+    void createAdmin(UserRegistrationRequest user);
 
     /**
      * Changes the status (enabled/disabled) of a user account.
@@ -27,7 +26,7 @@ public interface AdminService {
      * @param userId ID of the user to modify
      * @param status true to enable, false to disable
      */
-    void changeAccountStatus(long userId, boolean status);
+    void updateUserAccountStatus(long userId, boolean status);
 
     /**
      * Deletes a user from the database by ID.
@@ -41,7 +40,7 @@ public interface AdminService {
      *
      * @return list of all user objects
      */
-    List<User> getAllUsers();
+    List<User> getUsers();
 
     /**
      * Adds a new global category to the system. Global categories
@@ -50,6 +49,6 @@ public interface AdminService {
      * @param category DTO containing category data
      * @return the created category response
      */
-    CategoryResponseDTO addGlobalCategory(CategoryCreationRequest category);
+    CategoryResponseDTO createGlobalCategory(CategoryCreationRequest category);
 
 }

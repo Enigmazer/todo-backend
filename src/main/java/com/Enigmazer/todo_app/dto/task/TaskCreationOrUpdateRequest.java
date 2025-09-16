@@ -34,8 +34,10 @@ public class TaskCreationOrUpdateRequest {
     @Schema(
             description = "Due date for the task in yyyy-MM-dd format. Optional but recommended.",
             example = "2025-01-31",
-            type = "string"
+            type = "string",
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
+    @NotNull(message = "DueDate can't be empty")
     private Instant dueDate;
 
     @Schema(

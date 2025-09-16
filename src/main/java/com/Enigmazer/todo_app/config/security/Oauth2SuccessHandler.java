@@ -59,7 +59,9 @@ public class Oauth2SuccessHandler implements AuthenticationSuccessHandler {
             // Generate JWT token
             TokenPair tokenPair = jwtService.generateTokens(email);
 
-//            // Set Refresh Token in Secure HttpOnly Cookie
+            // Set Refresh Token in Secure HttpOnly Cookie
+            // skipping this because of different domains, the refresh token for oauth2 login
+            // will be set using an api call to 'auth/store-refresh-token' after logging in
 //            ResponseCookie refreshCookie = cookieService.buildRefreshTokenCookie(tokenPair.refreshToken());
 //            response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 

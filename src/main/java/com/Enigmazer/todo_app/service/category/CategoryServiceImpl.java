@@ -35,15 +35,15 @@ public class CategoryServiceImpl implements CategoryService {
      * @return DTO of the saved category
      */
     @Override
-    public CategoryResponseDTO addCategory(CategoryCreationRequest category) {
-        log.info("[CategoryService] Attempting to add category: {}", category.getName());
+    public CategoryResponseDTO createCategory(CategoryCreationRequest category) {
+        log.info("Attempting to add category: {}", category.getName());
 
         Category newCategory = new Category();
         newCategory.setName(category.getName());
         newCategory.setUser(jwtService.getCurrentUser());
 
         Category saved = categoryRepository.save(newCategory);
-        log.info("[CategoryService] Category saved successfully with ID: {}", saved.getId());
+        log.info("Category saved successfully with ID: {}", saved.getId());
 
         return categoryMapper.toDto(saved);
     }
@@ -56,10 +56,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryResponseDTO> getCategories() {
         Long userId = jwtService.getCurrentUser().getId();
-        log.info("[CategoryService] Fetching categories for user ID: {}", userId);
+        log.info("Fetching categories for user ID: {}", userId);
 
         List<Category> categories = categoryRepository.findAvailableCategories(userId);
-        log.info("[CategoryService] {} categories fetched", categories.size());
+        log.info("{} categories fetched", categories.size());
 
         return categories.stream()
                 .map(categoryMapper::toDto)
@@ -75,13 +75,35 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category getCategoryById(Long categoryId) {
         Long userId = jwtService.getCurrentUser().getId();
-        log.info("[CategoryService] Fetching category ID: {} for user ID: {}", categoryId, userId);
+        log.info("Fetching category ID: {} for user ID: {}", categoryId, userId);
 
         return categoryRepository.findByIdAndUserId(categoryId, userId)
                 .orElseThrow(() -> {
-                    log.error("[CategoryService] No category found with ID: {} for user ID: {}", categoryId, userId);
+                    log.error("No category found with ID: {} for user ID: {}", categoryId, userId);
                     return new ResourceNotFoundException("No category found with the given ID.");
                 });
+    }
+
+    /**
+     * Updates an existing category with new details.
+     * Only the owner of the category can update it.
+     * and global categories can not be updated by normal users.
+     *
+     * @param categoryId The ID of the category to update
+     * @param category The updated category details
+     * @return A DTO containing the updated category's information
+     * @throws ResourceNotFoundException if the category is not found
+     * @throws IllegalArgumentException if the category is not owned by the current user
+     */
+    @Override
+    public CategoryResponseDTO updateCategory(Long categoryId,CategoryCreationRequest category){
+        Category existingCategory = getCategoryById(categoryId);
+        if (existingCategory.isGlobal()) {
+            log.debug("Attempted to updates a global category (ID: {})", categoryId);
+            throw new IllegalArgumentException("Global categories can't be updated");
+        }
+        existingCategory.setName(category.getName());
+        return categoryMapper.toDto(categoryRepository.save(existingCategory));
     }
 
     /**
@@ -91,36 +113,31 @@ public class CategoryServiceImpl implements CategoryService {
      */
     @Override
     public void deleteCategory(Long categoryId) {
-        log.info("[CategoryService] Deletion request received for category ID: {}", categoryId);
+        log.info("Deletion request received for category ID: {}", categoryId);
         Category category = getCategoryById(categoryId);
 
         if (category.isGlobal()) {
-            log.debug("[CategoryService] Attempted to delete a global category (ID: {})", categoryId);
+            log.debug("Attempted to delete a global category (ID: {})", categoryId);
             throw new IllegalArgumentException("Global categories can't be deleted");
         }
 
         if (categoryRepository.countTasksByCategoryId(categoryId) > 0){
-            log.debug("[CategoryService] Attempted to delete a category (ID: {}) which belongs to a task.", categoryId);
+            log.debug("Attempted to delete a category (ID: {}) which belongs to a task.", categoryId);
             throw new IllegalArgumentException("Category can not be deleted because it belongs to a task.");
         }
 
         categoryRepository.delete(category);
-        log.info("[CategoryService] Category deleted successfully (ID: {})", categoryId);
+        log.info("Category deleted successfully (ID: {})", categoryId);
     }
 
+    /**
+     * Counts the total number of categories available to the current user.
+     * This includes both user-specific categories and global categories.
+     *
+     * @return The total count of accessible categories
+     */
     @Override
-    public Integer totalCategoriesOfUser(){
-        return categoryRepository.totalCategoriesOfUser(jwtService.getCurrentUser().getId());
-    }
-
-    @Override
-    public CategoryResponseDTO updateCategory(Long categoryId,CategoryCreationRequest category){
-        Category existingCategory = getCategoryById(categoryId);
-        if (existingCategory.isGlobal()) {
-            log.debug("[CategoryService] Attempted to updates a global category (ID: {})", categoryId);
-            throw new IllegalArgumentException("Global categories can't be updated");
-        }
-        existingCategory.setName(category.getName());
-        return categoryMapper.toDto(categoryRepository.save(existingCategory));
+    public Integer countCategories(){
+        return categoryRepository.countCategories(jwtService.getCurrentUser().getId());
     }
 }

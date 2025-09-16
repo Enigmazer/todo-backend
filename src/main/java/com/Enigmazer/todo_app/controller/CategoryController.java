@@ -4,6 +4,7 @@ import com.Enigmazer.todo_app.dto.category.CategoryCreationRequest;
 import com.Enigmazer.todo_app.dto.category.CategoryResponseDTO;
 import com.Enigmazer.todo_app.service.category.CategoryService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,19 +22,18 @@ import java.util.List;
  * <ul>
  *     <li>Add a new category</li>
  *     <li>Get all categories</li>
+ *     <li>Update a category</li>
  *     <li>Delete a category</li>
+ *     <li>Get total categories count</li>
  * </ul>
  */
 @RestController
-@RequestMapping("/category")
 @Slf4j
+@RequiredArgsConstructor
+@RequestMapping("/categories")
 public class CategoryController {
 
     private final CategoryService categoryService;
-
-    public CategoryController(CategoryService categoryService) {
-        this.categoryService = categoryService;
-    }
 
     /**
      * Add a new category for the current user.
@@ -42,9 +42,9 @@ public class CategoryController {
      * @return The saved category
      */
     @PostMapping
-    public ResponseEntity<CategoryResponseDTO> addCategory(@Valid @RequestBody CategoryCreationRequest category) {
+    public ResponseEntity<CategoryResponseDTO> createCategory(@Valid @RequestBody CategoryCreationRequest category) {
         log.info("Category creation request received for name: {}", category.getName());
-        CategoryResponseDTO saved = categoryService.addCategory(category);
+        CategoryResponseDTO saved = categoryService.createCategory(category);
         log.info("Category created successfully with ID: {}", saved.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
@@ -62,7 +62,14 @@ public class CategoryController {
         return ResponseEntity.ok(categories);
     }
 
-    @PutMapping("/update/{categoryId}")
+    /**
+     *  Used for updating the name of the category
+     *
+     * @param categoryId id if the category that we have to update
+     * @param category  contains the new name for the category
+     * @return  updated category
+     */
+    @PutMapping("/{categoryId}")
     public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable long categoryId,
                                                               @Valid @RequestBody CategoryCreationRequest category){
         return ResponseEntity.ok(categoryService.updateCategory(categoryId,category));
@@ -72,9 +79,9 @@ public class CategoryController {
      * Delete a category by its ID (must belong to current user).
      *
      * @param categoryId ID of the category to delete
-     * @return HTTP 200 if deleted
+     * @return HTTP 200
      */
-    @DeleteMapping("/delete/{categoryId}")
+    @DeleteMapping("/{categoryId}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId) {
         log.info("Request to delete category with ID: {}", categoryId);
         categoryService.deleteCategory(categoryId);
@@ -82,8 +89,14 @@ public class CategoryController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/total")
-    public ResponseEntity<Integer> totalCategoriesOfUser(){
-        return ResponseEntity.ok(categoryService.totalCategoriesOfUser());
+    /**
+     * used for getting the total categories count of the user
+     * including global categories
+     *
+     * @return count of the categories
+     */
+    @GetMapping("/count")
+    public ResponseEntity<Integer> countCategories(){
+        return ResponseEntity.ok(categoryService.countCategories());
     }
 }

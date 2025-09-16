@@ -5,6 +5,9 @@ spring:
   data:
     redis:
       url: ${REDIS_URL}
+  jpa:
+    hibernate:
+      ddl-auto: none
 
 springdoc:
   api-docs:
@@ -25,7 +28,3 @@ logging:
     org.springframework: WARN
     org.hibernate: WARN
     com.Enigmazer.todo_app: INFO
-
-
-
-

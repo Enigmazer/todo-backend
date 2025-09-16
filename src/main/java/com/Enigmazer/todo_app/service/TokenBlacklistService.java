@@ -1,26 +1,29 @@
 package com.Enigmazer.todo_app.service;
 
 import com.Enigmazer.todo_app.constants.CacheNameConstants;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
+/**
+ * Handle work related to token blacklisting
+ */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class TokenBlacklistService {
 
-    @Autowired
-    private CacheManager cacheManager;
+    private final CacheManager cacheManager;
 
     /**
      * Adds a token to the blacklist.
      *
      * @param tokenId unique identifier of the token (jti claim)
-     * @param expirationTime when the token should be expired (not used here unless cache supports TTL)
+     * @param expirationTime when the token should be expired (not used here)
      */
     public void blacklistToken(String tokenId, Date expirationTime) {
         Cache cache = cacheManager.getCache(CacheNameConstants.TOKEN_BLACKLIST_CACHE);
@@ -33,7 +36,7 @@ public class TokenBlacklistService {
     }
 
     /**
-     * Checks whether a token is blacklisted.
+     * Checks whether a token is blacklisted or not.
      *
      * @param tokenId unique identifier of the token
      * @return true if token is blacklisted, false otherwise

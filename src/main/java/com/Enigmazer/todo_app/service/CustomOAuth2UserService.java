@@ -21,8 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 /**
- * CustomOAuth2UserService handles Oauth2 related operations
- * like it loads user from request, verifies them or register them if they are new
+ * CustomOAuth2UserService handles Oauth2 related operations like it loads
+ * user from request, verifies them ,or register and verify them if they are new
  */
 @Service
 @Slf4j
@@ -36,8 +36,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
      *
      * @param request   incoming HTTP request
      * @return  OAuth2User authenticated oauth2 user
-     * @throws OAuth2AuthenticationException threw when email is not found
-     * from the provider or is registered with another provider
+     * @throws OAuth2AuthenticationException threw when credentials
+     * are wrong or not found
      */
     @Override
     @Transactional
@@ -58,12 +58,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             throw new OAuth2AuthenticationException("Provider Id is missing");
         }
 
-        // If Oauth2 provider is GitHub, then fetch email manually if missing
+        // If email is missing and Oauth2 provider is GitHub, then try to fetch email manually
         if (email == null && provider.equals("github")) {
             email = fetchGitHubEmail(request);
         }
 
-        // if no email found from provider then don't move ahead
+        // if still no email found from provider then don't move ahead
         if (email == null) {
             log.info("No email found from the provider : {}", provider);
             throw new OAuth2AuthenticationException("Email not found from " + provider);
@@ -80,10 +80,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // Validate user
         User user = userRepository.findByProviderAndProviderId(provider, providerId).orElse(null);
 
-        // update user info if needed, save if it's a new user
-        // or throw exception if email registered with another provider
+        // update email if needed, throw exception if email registered with another provider
+        // or save if it's a new user
 
-        // if the email is already registered with another provider
         if (user != null){
             if (!email.equals(user.getEmail())) {
                 log.info("Updating email from {} to {}", user.getEmail(), email);

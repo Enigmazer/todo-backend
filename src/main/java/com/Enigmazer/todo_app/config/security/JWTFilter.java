@@ -1,7 +1,6 @@
 package com.Enigmazer.todo_app.config.security;
 
 import com.Enigmazer.todo_app.service.JWTService;
-import com.Enigmazer.todo_app.service.user.UserDetailsServiceImpl;
 import io.micrometer.common.lang.NonNullApi;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,18 +8,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,7 +57,7 @@ public class JWTFilter extends OncePerRequestFilter {
             token = authHeader.substring(7);
             try {
                 log.debug("Extracting email from access token.");
-                email = jwtService.extractEmail(token);
+                email = jwtService.extractUsername(token);
                 log.debug("Email is successfully extracted from the access token: {}", email);
             } catch (Exception e) {
                 log.warn("Invalid access token: {}", e.getMessage());
@@ -77,7 +73,7 @@ public class JWTFilter extends OncePerRequestFilter {
                 Set<GrantedAuthority> authorities = role.stream()
                         .map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
                 log.debug("Mapped role {} to user {}", role, email);
-                if (jwtService.validateToken(token)) {
+                if (jwtService.isAccessTokenValid(token)) {
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(email, null, authorities);
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

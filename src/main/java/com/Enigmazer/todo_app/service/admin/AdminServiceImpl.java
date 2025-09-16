@@ -3,7 +3,6 @@ package com.Enigmazer.todo_app.service.admin;
 import com.Enigmazer.todo_app.constants.RoleConstants;
 import com.Enigmazer.todo_app.dto.category.CategoryCreationRequest;
 import com.Enigmazer.todo_app.dto.category.CategoryResponseDTO;
-import com.Enigmazer.todo_app.dto.user.UserLoginRequest;
 import com.Enigmazer.todo_app.dto.user.UserRegistrationRequest;
 import com.Enigmazer.todo_app.exception.CustomExceptions.DuplicateResourceException;
 import com.Enigmazer.todo_app.exception.CustomExceptions.ResourceNotFoundException;
@@ -14,7 +13,6 @@ import com.Enigmazer.todo_app.repository.CategoryRepository;
 import com.Enigmazer.todo_app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +42,7 @@ public class AdminServiceImpl implements AdminService{
      * @throws IllegalStateException if the email already exists in db
      */
     @Override
-    public void registerUser(UserRegistrationRequest dto) {
+    public void createAdmin(UserRegistrationRequest dto) {
 
         String email = dto.getEmail().toLowerCase();
         log.info("Attempting to register admin user with email: {}", email);
@@ -59,7 +57,7 @@ public class AdminServiceImpl implements AdminService{
         user.setName(dto.getName());
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setRoles(Set.of(RoleConstants.ROLE_USER));
+        user.setRoles(Set.of(RoleConstants.ROLE_ADMIN));
         user.setProvider("local");
         log.info("saving the user: {}", email);
         userRepository.save(user);
@@ -76,7 +74,7 @@ public class AdminServiceImpl implements AdminService{
      * id is not found in the database
      */
     @Override
-    public void changeAccountStatus(long userId, boolean status) {
+    public void updateUserAccountStatus(long userId, boolean status) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
 
@@ -103,32 +101,30 @@ public class AdminServiceImpl implements AdminService{
      * @return list of all user from database
      */
     @Override
-    public List<User> getAllUsers() {
+    public List<User> getUsers() {
         log.info("returning the list of all users");
         return userRepository.findAll();
     }
 
     /**
-     * adds a global category which is visible
-     * to everyone and this category have null
-     * mean no user because it's for all, and
-     * it requires admin access to delete
+     * adds a global category which is visible to everyone and this category have null
+     * userid mean no single user own it because it's for everyone, and it requires admin access to delete
      *
      * @param category DTO containing category data
      * @return the category which we just created
      * @throws DuplicateResourceException if the category already exists
      */
     @Override
-    public CategoryResponseDTO addGlobalCategory(CategoryCreationRequest category){
-        Category globalCategory = categoryRepository.findByNameAndGlobal(
-                category.getName()).orElse(null);
+    public CategoryResponseDTO createGlobalCategory(CategoryCreationRequest category){
+        categoryRepository.findByNameAndGlobal(
+                category.getName()).ifPresent(
+                        c -> {
+                            log.error("Category: {} already exist in the database ", category.getName());
+                            throw new DuplicateResourceException("Category already exists");
+                        }
+        );
 
-        if(globalCategory != null) {
-            log.error("Category: {} already exist in the database ", category.getName());
-            throw new DuplicateResourceException("Category already exists");
-        }
-
-        globalCategory = new Category();
+        Category globalCategory = new Category();
         globalCategory.setName(category.getName());
         globalCategory.setUser(null);
         globalCategory.setGlobal(true);

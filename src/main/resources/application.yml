@@ -1,5 +1,7 @@
 server:
   port: ${PORT:8080}
+  servlet:
+    context-path: /api
 
 jwt:
   accessTokenExpiry: 15m  # or 1h, or 3d
@@ -14,10 +16,6 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-  jpa:
-    hibernate:
-      ddl-auto: none
-#    show-sql: true
   security:
     oauth2:
       client:
@@ -32,4 +30,19 @@ spring:
             client-secret: ${GITHUB_CLIENT_SECRET}
             scope: read:user, user:email
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true  # important for existing DB
+    baseline-version: 1

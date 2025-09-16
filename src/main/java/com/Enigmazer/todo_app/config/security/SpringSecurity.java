@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
- * This SpringSecurity class is for frontend support
+ * Main security configuration class
  */
 @Configuration
 @EnableWebSecurity
@@ -34,9 +34,13 @@ public class SpringSecurity {
     private final AuthEntryPoint authEntryPoint;
     private final CorsConfigurationSource corsConfigurationSource;
 
-    @Value("${frontend.url}")
-    private String frontendUrl;
-
+    /**
+     * Configures the security filter chain.
+     *
+     * @param http the {@link HttpSecurity} object
+     * @return the configured {@link SecurityFilterChain}
+     * @throws Exception in case of any configuration errors
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -44,7 +48,7 @@ public class SpringSecurity {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/user/login",
+                                "/auth/login",
                                 "/oauth2/**",
                                 "/auth/refresh",
                                 "/v3/api-docs/**",
@@ -69,6 +73,11 @@ public class SpringSecurity {
                 .build();
     }
 
+    /**
+     * Returns an {@link AuthenticationProvider} using DAO and BCrypt.
+     *
+     * @return configured DAO authentication provider
+     */
     @Bean
     public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);

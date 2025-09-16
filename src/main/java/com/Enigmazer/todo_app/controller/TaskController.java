@@ -5,8 +5,8 @@ import com.Enigmazer.todo_app.dto.task.TaskResponseDTO;
 import com.Enigmazer.todo_app.service.task.TaskService;
 import com.Enigmazer.todo_app.service.task.TaskServiceImpl;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,22 +24,22 @@ import java.util.List;
  *     <li>Add a new task</li>
  *     <li>Fetch user tasks with filters</li>
  *     <li>Update an existing task</li>
- *     <li>Mark task as completed</li>
+ *     <li>Change task completed status</li>
+ *     <li>Change task email enable status</li>
  *     <li>Delete task</li>
  *     <li>Search tasks by keyword</li>
+ *     <li>Get total tasks count</li>
+ *     <li>Get total completed tasks count</li>
+ *     <li>Get total tasks count in a category</li>
  * </ul>
  */
 @RestController
-@RequestMapping("/task")
 @Slf4j
+@RequiredArgsConstructor
+@RequestMapping("/tasks")
 public class TaskController {
 
     private final TaskService taskService;
-
-    @Autowired
-    public TaskController(TaskService taskService) {
-        this.taskService = taskService;
-    }
 
     /**
      * Adds a new task to the database.
@@ -48,9 +48,9 @@ public class TaskController {
      * @return The created task
      */
     @PostMapping
-    public ResponseEntity<TaskResponseDTO> addTask(@Valid @RequestBody TaskCreationOrUpdateRequest task) {
+    public ResponseEntity<TaskResponseDTO> createTask(@Valid @RequestBody TaskCreationOrUpdateRequest task) {
         log.info("[TaskController] Add task request received");
-        TaskResponseDTO savedTask = taskService.addTask(task);
+        TaskResponseDTO savedTask = taskService.createTask(task);
         log.info("[TaskController] Task successfully added with ID: {}", savedTask.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(savedTask);
     }
@@ -78,7 +78,7 @@ public class TaskController {
                 status, categoryId, sortBy, sortDirection, page);
 
         Page<TaskResponseDTO> tasks = taskService
-                .getUserTasksSortedByDatesWithStatus(status, sortDirection, sortBy, categoryId, page);
+                .getTasks(status, sortDirection, sortBy, categoryId, page);
 
         return wrapPageResponse(tasks);
     }
@@ -86,11 +86,11 @@ public class TaskController {
     /**
      * Updates a task by ID.
      *
-     * @param taskId Task ID to update
+     * @param taskId ID of the task
      * @param task   Updated data
      * @return The updated task
      */
-    @PutMapping("/update/{taskId}")
+    @PutMapping("/{taskId}")
     public ResponseEntity<TaskResponseDTO> updateTask(
             @PathVariable long taskId,
             @Valid @RequestBody TaskCreationOrUpdateRequest task) {
@@ -102,29 +102,43 @@ public class TaskController {
     }
 
     /**
-     * Marks a task as completed.
+     * Change task completion status.
      *
      * @param taskId ID of the task
-     * @return The completed task
+     * @return The updated task
      */
-    @PutMapping("/completed/{taskId}")
-    public ResponseEntity<TaskResponseDTO> taskCompleted(@PathVariable long taskId) {
-        log.info("[TaskController] Marking task as completed (taskId={})", taskId);
-        TaskResponseDTO completed = taskService.taskCompleted(taskId);
-        log.info("[TaskController] Task marked as completed (taskId={})", taskId);
+    @PutMapping("/{taskId}/toggle-completion")
+    public ResponseEntity<TaskResponseDTO> toggleTaskCompletion(@PathVariable long taskId) {
+        log.info("changing task status (taskId={})", taskId);
+        TaskResponseDTO completed = taskService.toggleTaskCompletion(taskId);
+        log.info("task status changes (taskId={})", taskId);
         return ResponseEntity.ok(completed);
     }
 
     /**
-     * Deletes a task by ID.
+     * Enable or disable the email notification for the task
      *
-     * @param taskIds Task ID to delete
+     * @param taskId ID of the task
+     * @return updated task
+     */
+    @PutMapping("/{taskId}/toggle-notification")
+    public ResponseEntity<TaskResponseDTO> toggleTaskNotification(@PathVariable long taskId) {
+        log.info("changing send email state (taskId={})", taskId);
+        TaskResponseDTO completed = taskService.toggleTaskNotification(taskId);
+        log.info("send email status changed (taskId={})", taskId);
+        return ResponseEntity.ok(completed);
+    }
+
+    /**
+     * Deletes a list of tasks by ID.
+     *
+     * @param taskIds List of task ids
      * @return HTTP 204 if successful
      */
     @DeleteMapping
-    public ResponseEntity<Void> deleteTask(@RequestBody List<Long> taskIds) {
-        taskService.deleteTask(taskIds);
-        log.info("[TaskController] Task deleted (taskId={})", taskIds);
+    public ResponseEntity<Void> deleteTasks(@RequestBody List<Long> taskIds) {
+        taskService.deleteTasks(taskIds);
+        log.info("Task deleted (taskId={})", taskIds);
         return ResponseEntity.noContent().build();
     }
 
@@ -136,29 +150,46 @@ public class TaskController {
      * @return Page of matching tasks
      */
     @GetMapping("/search")
-    public ResponseEntity<Page<TaskResponseDTO>> searchInTasks(
+    public ResponseEntity<Page<TaskResponseDTO>> searchTasks(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page) {
 
         log.info("[TaskController] Search request received (keyword='{}', page={})", keyword, page);
-        Page<TaskResponseDTO> results = taskService.searchInTask(keyword, page);
+        Page<TaskResponseDTO> results = taskService.searchTasks(keyword, page);
         return wrapPageResponse(results);
     }
 
-    @GetMapping("/total")
-    public ResponseEntity<Integer> totalTasksOfUser(){
-        return ResponseEntity.ok(taskService.totalTasksOfUser());
+    /**
+     * return total task count of a user
+     *
+     * @return total tasks count
+     */
+    @GetMapping("/count")
+    public ResponseEntity<Integer> countTasks(){
+        return ResponseEntity.ok(taskService.countTasks());
     }
 
-    @GetMapping("/completed-total")
-    public ResponseEntity<Integer> totalCompletedTasksOfUser(){
-        return ResponseEntity.ok(taskService.totalCompletedTasksOfUser());
+    /**
+     * return total completed task count of a user
+     *
+     * @return total completed tasks count
+     */
+    @GetMapping("/count-completed")
+    public ResponseEntity<Integer> countCompletedTasks(){
+        return ResponseEntity.ok(taskService.countCompletedTasks());
     }
 
-    @GetMapping("/category-total/{categoryId}")
-    public ResponseEntity<Integer> totalTasksOfUserInCategory(@PathVariable Long categoryId){
-        return ResponseEntity.ok(taskService.totalTasksOfUserInCategory(categoryId));
+    /**
+     * return total task count of a user in
+     * a category
+     *
+     * @return total tasks count in a category
+     */
+    @GetMapping("/count/{categoryId}")
+    public ResponseEntity<Integer> countTasksInCategory(@PathVariable Long categoryId){
+        return ResponseEntity.ok(taskService.countTasksInCategory(categoryId));
     }
+
     /**
      * Helper method to wrap paginated responses.
      *

@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 /**
  * JWTService handles all JWT-related operations like generating tokens,
- * extracting user details from tokens, and validating them.
+ * extracting user details from tokens, and validating/invalidating them.
  */
 @Service
 @Slf4j
@@ -42,18 +42,34 @@ public class JWTService {
     private final RefreshTokenRepository refreshTokenRepository;
 
 
+    /**
+     * Constructs a new JWTService with the required dependencies.
+     *
+     * @param userRepository the user repository for user data access
+     * @param tokenBlacklistService the service for managing blacklisted tokens
+     * @param refreshTokenRepository the repository for managing refresh tokens
+     * @param keyLoader the loader for cryptographic keys
+     */
     @Autowired
     public JWTService(UserRepository userRepository,
-                      TokenBlacklistService tokenBlacklistService,
-                      RefreshTokenRepository refreshTokenRepository,
-                      KeyLoader keyLoader){
+                     TokenBlacklistService tokenBlacklistService,
+                     RefreshTokenRepository refreshTokenRepository,
+                     KeyLoader keyLoader) {
         this.userRepository = userRepository;
         this.tokenBlacklistService = tokenBlacklistService;
         this.refreshTokenRepository = refreshTokenRepository;
         this.keyPair = keyLoader.loadKeyPair("public_key.pem", "private_key.pem");
     }
 
-    public TokenPair generateTokens(String email){
+    /**
+     * Generates a new pair of access and refresh tokens for the specified user.
+     * Updates the user's last login timestamp.
+     *
+     * @param email the email of the user to generate tokens for
+     * @return a TokenPair containing both access and refresh tokens
+     * @throws UsernameNotFoundException if no user is found with the given email
+     */
+    public TokenPair generateTokens(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
@@ -66,6 +82,12 @@ public class JWTService {
         return tokenPair;
     }
 
+    /**
+     * Generates a new refresh token for the specified user and stores it in the database.
+     *
+     * @param user the user to generate the refresh token for
+     * @return the generated refresh token
+     */
     private String generateRefreshToken(User user) {
         String token = generateSecureToken();
         Instant expiry = Instant.now().plus(refreshTokenExpiry);
@@ -74,6 +96,11 @@ public class JWTService {
         return token;
     }
 
+    /**
+     * Generates a cryptographically secure random token.
+     *
+     * @return a URL-safe base64 encoded random string
+     */
     private String generateSecureToken() {
         byte[] randomBytes = new byte[64];
         new SecureRandom().nextBytes(randomBytes);
@@ -107,7 +134,14 @@ public class JWTService {
                 .compact();
     }
 
-    public TokenPair refreshBothTokens(String refreshToken) {
+    /**
+     * Refreshes both access and refresh tokens using a valid refresh token.
+     *
+     * @param refreshToken the refresh token to use for generating new tokens
+     * @return a new TokenPair with fresh access and refresh tokens
+     * @throws RuntimeException if the refresh token is invalid or no user is associated with it
+     */
+    public TokenPair renewTokens(String refreshToken) {
         if (!isRefreshTokenValid(refreshToken)) {
             throw new RuntimeException("Invalid refresh token");
         }
@@ -119,19 +153,25 @@ public class JWTService {
         );
     }
 
-    public boolean isRefreshTokenValid(String refreshToken){
+    /**
+     * Checks if a refresh token is valid and not expired.
+     *
+     * @param refreshToken the refresh token to validate
+     * @return true if the token is valid and not expired, false otherwise
+     */
+    public boolean isRefreshTokenValid(String refreshToken) {
         return refreshTokenRepository.findByToken(refreshToken)
                 .filter(rf -> rf.getExpiry().isAfter(Instant.now()) && !rf.isRevoked())
                 .isPresent();
     }
 
     /**
-     * Validates the JWT token by checking expiry, and blacklist status.
+     * Validates the access token by checking expiry, and blacklist status.
      *
-     * @param token       JWT token
+     * @param token       JWT(access) token
      * @return true if the token is valid and not expired
      */
-    public boolean validateToken(String token) {
+    public boolean isAccessTokenValid(String token) {
         try {
             Claims claims = extractAllClaims(token);
             final String tokenId = claims.getId();
@@ -189,6 +229,7 @@ public class JWTService {
 
     /**
      * Invalidates a JWT token by adding it to the blacklist.
+     * This method also invalidates the corresponding refresh token.
      *
      * @param token JWT token to invalidate
      */
@@ -208,9 +249,26 @@ public class JWTService {
     }
 
     /**
-     * Retrieves the currently authenticated user based on JWT.
+     * Invalidates a refresh token by marking it as revoked in the database.
      *
-     * @return current user from DB
+     * @param refreshToken the refresh token to invalidate
+     */
+    @Transactional
+    public void invalidateRefreshToken(String refreshToken) {
+        log.info("Invalidating the refresh token");
+        try {
+            refreshTokenRepository.findByToken(refreshToken)
+                    .ifPresent(refreshTokenEntity -> refreshTokenEntity.setRevoked(true));
+        } catch (Exception e) {
+            log.warn("Failed to invalidate refresh token: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Retrieves the currently authenticated user from the security context.
+     *
+     * @return the currently authenticated user
+     * @throws UsernameNotFoundException if no user is authenticated
      */
     public User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -219,12 +277,12 @@ public class JWTService {
     }
 
     /**
-     * Extracts the email (subject) from the given access token.
+     * Extracts the username (email) from a JWT token.
      *
-     * @param token JWT token
-     * @return user email (subject)
+     * @param token the JWT token
+     * @return the username (email) from the token's subject
      */
-    public String extractEmail(String token) {
+    public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -247,33 +305,44 @@ public class JWTService {
     }
 
     /**
-     * Extracts the token ID (jti) from the given access token.
+     * Extracts the JWT ID (jti) from a token.
      *
-     * @param token JWT token
-     * @return token ID
+     * @param token the JWT token
+     * @return the token's unique ID
      */
     public String extractTokenId(String token) {
         return extractClaim(token, Claims::getId);
     }
 
     /**
-     * Extracts the expiration date from the given access token.
+     * Extracts the expiration date from a JWT token.
      *
-     * @param token JWT token
-     * @return expiration date
+     * @param token the JWT token
+     * @return the expiration date of the token
      */
     public Date extractExpirationDate(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    /**
+     * Checks if a JWT token has expired.
+     *
+     * @param token the JWT token to check
+     * @return true if the token has expired, false otherwise
+     */
     private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        return extractExpirationDate(token).before(new Date());
     }
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
+    /**
+     * Extracts a specific claim from a JWT token using the provided claim resolver function.
+     * This is a generic helper method used by other claim extraction methods to avoid code duplication.
+     *
+     * @param <T> the type of the claim to extract
+     * @param token the JWT token from which to extract the claim
+     * @param claimResolver a function that extracts the desired claim from the token's claims
+     * @return the extracted claim value of type T
+     */
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
         final Claims claims = extractAllClaims(token);
         return claimResolver.apply(claims);

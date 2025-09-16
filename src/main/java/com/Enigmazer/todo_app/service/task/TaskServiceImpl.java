@@ -38,7 +38,7 @@ public class TaskServiceImpl implements TaskService {
      * @return The saved task as a DTO
      */
     @Override
-    public TaskResponseDTO addTask(TaskCreationOrUpdateRequest task) {
+    public TaskResponseDTO createTask(TaskCreationOrUpdateRequest task) {
         log.info("Creating new task for user: {}", jwtService.getCurrentUser().getEmail());
 
         Task newTask = new Task();
@@ -89,17 +89,14 @@ public class TaskServiceImpl implements TaskService {
      * @return Paginated list of tasks as DTOs
      */
     @Override
-    public Page<TaskResponseDTO> getUserTasksSortedByDatesWithStatus(
+    public Page<TaskResponseDTO> getTasks(
             Boolean status,
             String sortDirection,
             String sortBy,
             Long categoryId,
             int page
     ) {
-        if (page > 500) {
-            log.warn("Page number too high ({}), resetting to 0", page);
-            page = 0;
-        }
+        page = getTaskPage(page);
 
         Long userId = jwtService.getCurrentUser().getId();
 
@@ -122,20 +119,69 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+
     /**
-     * Marks a task as completed.
+     * Searches user's tasks by keyword in title or description.
+     *
+     * @param keyword Search keyword
+     * @param page    Page number
+     * @return Paginated results of matching tasks
+     */
+    @Override
+    public Page<TaskResponseDTO> searchTasks(String keyword, int page) {
+        page = getTaskPage(page);
+        Long userId = jwtService.getCurrentUser().getId();
+        log.info("Searching tasks for user {} with keyword: '{}', page: {}", userId, keyword, page);
+
+        Pageable pageable = PageRequest.of(page, 10);
+        return taskRepository.searchTasks(userId, keyword, pageable).map(taskMapper::toDto);
+    }
+
+    /**
+     * Check is the page number is bigger than 500 and if it is bigger, then reset it to 0
+     *
+     * @param page the page number
+     * @return the page number
+     */
+    private int getTaskPage(int page){
+        if (page > 500) {
+            log.warn("Page number too high ({}), resetting to 0", page);
+            return 0;
+        }
+        return page;
+    }
+
+    /**
+     * Change the completion status of the task and also change the reminder sent flag accordingly.
      *
      * @param taskId ID of the task
      * @return The updated task as DTO
      */
     @Override
-    public TaskResponseDTO taskCompleted(long taskId) {
-        log.info("Marking task ID: {} as completed", taskId);
+    public TaskResponseDTO toggleTaskCompletion(long taskId) {
+        log.info("changing task ID: {} status", taskId);
         Task task = getTaskById(taskId);
-        task.setCompleted(true);
-        Task saved = taskRepository.save(task);
-        log.info("Task ID: {} marked completed", taskId);
-        return taskMapper.toDto(saved);
+        task.setCompleted(!task.isCompleted());
+        task.setReminderSent(task.isCompleted());
+        task = taskRepository.save(task);
+        log.info("Task ID: {} status changed", taskId);
+        return taskMapper.toDto(task);
+    }
+
+    /**
+     * Change the email notification status of the task.
+     *
+     * @param taskId The ID of the task to update
+     * @return The updated task as DTO
+     */
+    @Override
+    public TaskResponseDTO toggleTaskNotification(long taskId) {
+        log.info("changing send email state (taskId={})", taskId);
+        Task task = getTaskById(taskId);
+        task.setEmailEnabled(!task.isEmailEnabled());
+        task = taskRepository.save(task);
+        log.info("send email status changed (taskId={})", taskId);
+        return taskMapper.toDto(task);
     }
 
     /**
@@ -148,64 +194,67 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponseDTO updateTask(long taskId, TaskCreationOrUpdateRequest task) {
         log.info("Updating task ID: {}", taskId);
-        Task existingTask = getTaskById(taskId);
 
+        Task existingTask = getTaskById(taskId);
         existingTask.setCategory(categoryService.getCategoryById(task.getCategoryId()));
         existingTask.setTitle(task.getTitle());
+        if (task.getDueDate().isAfter(existingTask.getDueDate())) {
+            existingTask.setDueDate(task.getDueDate());
+            existingTask.setReminderSent(false);
+        }else {
+            existingTask.setDueDate(task.getDueDate());
+        }
 
-        if (task.getDescription() != null) existingTask.setDescription(task.getDescription());
-        if (task.getDueDate() != null) existingTask.setDueDate(task.getDueDate());
+        if (task.getDescription() != null && task.getDescription().trim().isBlank()) {
+            existingTask.setDescription(task.getDescription());
+        }
 
-        Task saved = taskRepository.save(existingTask);
         log.info("Task ID: {} updated successfully", taskId);
-        return taskMapper.toDto(saved);
+        return taskMapper.toDto(taskRepository.save(existingTask));
     }
 
     /**
-     * Deletes a task after validating ownership.
+     * Deletes a list of tasks after validating ownership.
      *
      * @param taskIds ID of the task
      */
     @Override
-    public void deleteTask(List<Long> taskIds) {
+    public void deleteTasks(List<Long> taskIds) {
         log.info("Deleting task ID: {}", taskIds);
-        taskRepository.deleteTasks(taskIds, jwtService.getCurrentUser().getId());
+
+        User user = jwtService.getCurrentUser();
+        taskRepository.deleteTasks(taskIds, user.getId());
+
         log.info("Task ID: {} deleted", taskIds);
     }
 
     /**
-     * Searches user's tasks by keyword in title or description.
-     *
-     * @param keyword Search keyword
-     * @param page    Page number
-     * @return Paginated results of matching tasks
+     * Counts the total number of tasks for the current user.
+     * @return The total count of tasks
      */
     @Override
-    public Page<TaskResponseDTO> searchInTask(String keyword, int page) {
-        if (page > 500) {
-            log.warn("Page number too high ({}), resetting to 0", page);
-            page = 0;
-        }
-
-        Long userId = jwtService.getCurrentUser().getId();
-        log.info("Searching tasks for user {} with keyword: '{}', page: {}", userId, keyword, page);
-
-        Pageable pageable = PageRequest.of(page, 10);
-        return taskRepository.searchTask(userId, keyword, pageable).map(taskMapper::toDto);
+    public Integer countTasks(){
+        return taskRepository.countTasks(jwtService.getCurrentUser().getId());
     }
 
+    /**
+     * Counts the number of completed tasks for the current user.
+     *
+     * @return The count of completed tasks
+     */
     @Override
-    public Integer totalTasksOfUser(){
-        return taskRepository.totalTasksOfUser(jwtService.getCurrentUser().getId());
+    public Integer countCompletedTasks(){
+        return taskRepository.countCompletedTasks(jwtService.getCurrentUser().getId());
     }
 
+    /**
+     * Counts the number of tasks in a specific category for the current user.
+     *
+     * @param categoryId The ID of the category
+     * @return The count of tasks in the specified category
+     */
     @Override
-    public Integer totalCompletedTasksOfUser(){
-        return taskRepository.totalCompletedTasksOfUser(jwtService.getCurrentUser().getId());
-    }
-
-    @Override
-    public Integer totalTasksOfUserInCategory(Long categoryId){
-        return taskRepository.totalTasksOfUserInCategory(jwtService.getCurrentUser().getId(), categoryId);
+    public Integer countTasksInCategory(Long categoryId){
+        return taskRepository.countTasksInCategory(jwtService.getCurrentUser().getId(), categoryId);
     }
 }
