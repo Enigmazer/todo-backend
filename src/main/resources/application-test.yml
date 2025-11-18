@@ -1,0 +1,38 @@
+spring:
+  cache:
+    caffeine:
+      spec: maximumSize = 1, expireAfterWrite = 10m
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+resilience4j.ratelimiter:
+  instances:
+    githubApi:
+      limit-for-period: 5
+      limit-refresh-period: 1s
+      timeout-duration: 500ms
+
+logging:
+  level:
+    root: WARN
+    org.springframework: WARN
+    org.hibernate: WARN
+    com.Enigmazer.todo_app: INFO

@@ -2,10 +2,7 @@ package com.Enigmazer.todo_app.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -16,13 +13,14 @@ import java.util.Set;
  * Users can be authenticated either through the local system or via OAuth providers.
  * Each user can have multiple tasks and categories associated with their account.
  */
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Entity
 @Table(name = "users", uniqueConstraints
         = @UniqueConstraint(columnNames = {"provider", "providerId"}))
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class User {
 
     /**
@@ -63,12 +61,14 @@ public class User {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(nullable = false, name = "role")
+    @Builder.Default
     private Set<String> roles = new HashSet<>();
 
     /**
      * Indicates whether the user account is enabled.
      * Disabled accounts cannot log in to the system.
      */
+    @Builder.Default
     @Column(nullable = false)
     private boolean isEnabled = true;
 

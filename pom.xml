@@ -1,182 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.5</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
+
 	<groupId>com.Enigmazer</groupId>
 	<artifactId>todo_app</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>todo_app</name>
 	<description>To-Do List App</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+
 	<properties>
 		<java.version>21</java.version>
+		<mapstruct.version>1.5.5.Final</mapstruct.version>
+		<lombok.version>1.18.30</lombok.version>
 	</properties>
 
 	<dependencies>
-		<!-- Swagger OpenAPI (springdoc) -->
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.8.12</version>
-		</dependency>
-		<!-- Enables Spring Data JPA for working with relational databases using Hibernate ORM -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<!-- For enabling Oauth2 support (login or registration with provider like
-		google, gitHub etc.)-->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-oauth2-client</artifactId>
-		</dependency>
-		<!-- For enabling spring security -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<!-- Provides Spring MVC and embedded Tomcat to build RESTful web applications -->
+		<!-- Core Spring Boot starters -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-		<!-- Enables automatic validation support in Spring Boot using Hibernate Validator
-		(JSR-380 implementation) for @Valid, @NotNull, @Size, and other bean validation annotations -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-client</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
-		<!-- PostgreSQL JDBC driver to enable database connectivity with PostgreSQL -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
+		<!-- Database drivers and migrations -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<!-- Lombok reduces boilerplate code by generating getters, setters, constructors,
-		and other common methods at compile time -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<!-- Provides testing libraries like JUnit, Mockito, and Spring Test for
-		writing unit and integration tests -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-inline</artifactId>
-			<version>5.2.0</version>
-			<scope>test</scope>
-		</dependency>
-		<!-- Adds support for testing Spring Security components like authentication
-		and authorization in tests -->
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<!-- Provides the full Jakarta EE API for building enterprise Java applications -->
-		<dependency>
-			<groupId>jakarta.platform</groupId>
-			<artifactId>jakarta.jakartaee-api</artifactId>
-			<version>10.0.0</version>
-		</dependency>
-		<!-- JJWT API library for creating and parsing JSON Web Tokens (JWT) -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-api</artifactId>
-			<version>0.12.6</version>
-		</dependency>
-		<!-- JJWT implementation library providing the actual functionality behind the JJWT API -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-impl</artifactId>
-			<version>0.12.6</version>
-			<scope>runtime</scope>
-		</dependency>
-		<!-- JJWT extension for JSON processing using Jackson library -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-jackson</artifactId>
-			<version>0.12.6</version>
-			<scope>runtime</scope>
-		</dependency>
-		<!-- Provides cryptographic APIs (like RSA, AES, etc.) using the Bouncy Castle library for Java. -->
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk18on</artifactId>
-			<version>1.80</version>
-		</dependency>
-		<!-- for rate limiting -->
-		<dependency>
-			<groupId>io.github.resilience4j</groupId>
-			<artifactId>resilience4j-spring-boot3</artifactId>
-			<version>2.3.0</version>
-		</dependency>
-		<!-- enable springs cache support but does not cache anything by itself -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-cache</artifactId>
-		</dependency>
-		<!-- for fast, in-memory, per-instance caching (ideal for small TTLs and high-speed access) -->
-		<dependency>
-			<groupId>com.github.ben-manes.caffeine</groupId>
-			<artifactId>caffeine</artifactId>
-		</dependency>
-		<!-- for centralized, distributed, shared caching (great for multi-instance or persistent needs) -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-redis</artifactId>
-		</dependency>
-		<!-- includes default logback setup -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-logging</artifactId>
-		</dependency>
-		<!-- provides the rolling policies and base classes -->
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-core</artifactId>
-		</dependency>
-		<!-- implements SLF4J logging and is required for advanced features like RollingFileAppender -->
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-		</dependency>
-		<!-- for mapping data to dto -->
-		<dependency>
-			<groupId>org.mapstruct</groupId>
-			<artifactId>mapstruct</artifactId>
-			<version>1.5.5.Final</version>
-		</dependency>
-		<!-- for sending emails -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
-		</dependency>
-		<!-- for prod db update-->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
@@ -185,34 +66,113 @@
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
+
+		<!-- Caching -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
+		<!-- JWT -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.12.6</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>1.80</version>
+		</dependency>
+
+		<!-- Utility libraries -->
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-spring-boot3</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.8.12</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mailersend</groupId>
+			<artifactId>java-sdk</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+
+		<!-- Testing dependencies -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-inline</artifactId>
+			<version>5.2.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<profiles>
+		<!-- Developer profile -->
 		<profile>
 			<id>dev</id>
 			<dependencies>
-				<!-- Adds developer tools for faster development: automatic restart, live reload,
-    			and enhanced debugging support -->
 				<dependency>
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-devtools</artifactId>
 					<scope>runtime</scope>
-					<optional>true</optional>
 				</dependency>
 			</dependencies>
-		</profile>
-
-		<profile>
-			<id>prod</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
 		</profile>
 	</profiles>
 
 	<build>
 		<plugins>
-			<!-- Enable annotation processing for MapStruct and lombok -->
+			<!-- Annotation processing for MapStruct and Lombok -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -224,14 +184,13 @@
 						<path>
 							<groupId>org.mapstruct</groupId>
 							<artifactId>mapstruct-processor</artifactId>
-							<version>1.5.5.Final</version>
+							<version>${mapstruct.version}</version>
 						</path>
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
-							<version>1.18.30</version>
+							<version>${lombok.version}</version>
 						</path>
-						<!-- This is needed to make Lombok and MapStruct work together -->
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok-mapstruct-binding</artifactId>
@@ -244,27 +203,14 @@
 					</compilerArgs>
 				</configuration>
 			</plugin>
-			<!-- Configure Java agent for Mockito inline mock maker to avoid dynamic attachment warnings -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.1.2</version>
-				<configuration>
-					<argLine>
-						-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
-						-Xshare:off
-					</argLine>
-				</configuration>
-			</plugin>
-			<!-- Enable annotation processing for spring boot -->
+
+			<!-- Spring Boot packaging -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<excludes>
 						<exclude>
-							<!-- excluding this because its work is done at
-							compile time, and then it is useless at runtime-->
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 						</exclude>
@@ -273,4 +219,5 @@
 			</plugin>
 		</plugins>
 	</build>
+
 </project>

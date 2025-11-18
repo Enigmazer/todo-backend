@@ -1,5 +1,6 @@
 package com.Enigmazer.todo_app.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.FileNotFoundException;
@@ -24,6 +25,7 @@ import java.util.Base64;
  * and falls back to the classpath resources if running locally.
  */
 @Component
+@Slf4j
 public class KeyLoader {
 
     /**
@@ -109,7 +111,7 @@ public class KeyLoader {
      * @throws RuntimeException if either key cannot be loaded
      */
     public KeyPair loadKeyPair(String publicKeyFile, String privateKeyFile) {
-        System.out.println("Trying to load keys: " + publicKeyFile + ", " + privateKeyFile);
+        log.debug("Loading key pair: publicKey={}, privateKey={}", publicKeyFile, privateKeyFile);
         return new KeyPair(loadPublicKey(publicKeyFile), loadPrivateKey(privateKeyFile));
     }
 }

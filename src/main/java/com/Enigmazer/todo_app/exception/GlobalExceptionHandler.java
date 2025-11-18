@@ -3,9 +3,9 @@ package com.Enigmazer.todo_app.exception;
 import com.Enigmazer.todo_app.exception.CustomExceptions.DuplicateResourceException;
 import com.Enigmazer.todo_app.exception.CustomExceptions.ResourceNotFoundException;
 import io.jsonwebtoken.JwtException;
-import jakarta.ws.rs.ForbiddenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -45,8 +45,8 @@ public class GlobalExceptionHandler {
         return generateResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<?> handleForbidden(ForbiddenException ex) {
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDenied(AccessDeniedException ex) {
         return generateResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 

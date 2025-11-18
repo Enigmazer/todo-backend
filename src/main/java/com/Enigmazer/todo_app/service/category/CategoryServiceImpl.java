@@ -1,7 +1,7 @@
 package com.Enigmazer.todo_app.service.category;
 
-import com.Enigmazer.todo_app.dto.category.CategoryResponseDTO;
 import com.Enigmazer.todo_app.dto.category.CategoryCreationRequest;
+import com.Enigmazer.todo_app.dto.category.CategoryResponseDTO;
 import com.Enigmazer.todo_app.exception.CustomExceptions.ResourceNotFoundException;
 import com.Enigmazer.todo_app.mapper.CategoryMapper;
 import com.Enigmazer.todo_app.model.Category;
@@ -38,14 +38,16 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponseDTO createCategory(CategoryCreationRequest category) {
         log.info("Attempting to add category: {}", category.getName());
 
-        Category newCategory = new Category();
-        newCategory.setName(category.getName());
-        newCategory.setUser(jwtService.getCurrentUser());
+        Category newCategory = categoryRepository.save(
+                Category.builder()
+                        .name(category.getName())
+                        .user(jwtService.getCurrentUser())
+                        .build()
+        );
 
-        Category saved = categoryRepository.save(newCategory);
-        log.info("Category saved successfully with ID: {}", saved.getId());
+        log.info("Category saved successfully with ID: {}", newCategory.getId());
 
-        return categoryMapper.toDto(saved);
+        return categoryMapper.toDto(newCategory);
     }
 
     /**

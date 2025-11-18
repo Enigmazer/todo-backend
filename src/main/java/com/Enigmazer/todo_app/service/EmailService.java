@@ -27,7 +27,7 @@ public class EmailService {
      * @param taskTitle The title of the task being reminded about
      * @throws MessagingException if there is an error sending the email
      */
-    public void sendHtmlMail(String to, String name, String subject, String taskTitle)
+    public void sendTaskReminder(String to, String name, String subject, String taskTitle)
             throws MessagingException{
 
         MimeMessage message = mailSender.createMimeMessage();
@@ -56,4 +56,32 @@ public class EmailService {
         helper.setText(htmlContent, true);
         mailSender.send(message);
     }
+//
+//    /**
+//     * Sends an email notification for support.
+//     * The email includes the user's name, support category, subject and message.
+//     *
+//     * @param name The user's name
+//     * @param subject The support subject
+//     * @param message The support message
+//     * @throws MessagingException if there is an error sending the email
+//     */
+//    public void sendSupportEmail(String name, String email, String subject, String category,
+//                                 String message) throws MessagingException {
+//
+//        MimeMessage mimeMessage = mailSender.createMimeMessage();
+//        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false); // plain text
+//
+//        helper.setTo("arundangi660@gmail.com");
+//        helper.setSubject(subject);
+//        helper.setText(
+//                "Name: " + name + "<br>" +
+//                        "Email: " + email + "<br>" +
+//                        "Category: " + category + "<br>" +
+//                        "Message: " + message, true
+//        );
+//
+//        mailSender.send(mimeMessage);
+//    }
+
 }

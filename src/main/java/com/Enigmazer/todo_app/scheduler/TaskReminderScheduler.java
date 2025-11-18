@@ -45,7 +45,7 @@ public class TaskReminderScheduler {
 
         for (Task task : tasks) {
             // Send email notification
-            emailService.sendHtmlMail(
+            emailService.sendTaskReminder(
                     task.getUser().getEmail(),
                     task.getUser().getName(),
                     "Task Reminder: " + task.getTitle(),

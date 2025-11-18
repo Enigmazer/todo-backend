@@ -53,14 +53,15 @@ public class AdminServiceImpl implements AdminService{
         }
 
         log.info("Mapping the details from dto to real user object");
-        User user = new User();
-        user.setName(dto.getName());
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setRoles(Set.of(RoleConstants.ROLE_ADMIN));
-        user.setProvider("local");
-        log.info("saving the user: {}", email);
-        userRepository.save(user);
+        userRepository.save(
+                User.builder()
+                        .name(dto.getName())
+                        .email(email)
+                        .password(passwordEncoder.encode(dto.getPassword()))
+                        .roles(Set.of(RoleConstants.ROLE_ADMIN))
+                        .provider("local")
+                        .build()
+        );
         log.info("User: {} is successfully saved and registered", email);
     }
     
@@ -124,13 +125,16 @@ public class AdminServiceImpl implements AdminService{
                         }
         );
 
-        Category globalCategory = new Category();
-        globalCategory.setName(category.getName());
-        globalCategory.setUser(null);
-        globalCategory.setGlobal(true);
+        Category globalCategory = categoryRepository.save(
+                Category.builder()
+                        .name(category.getName())
+                        .user(null)
+                        .isGlobal(true)
+                        .build()
+        );
 
         log.error("Category: {} successfully added in the database ", globalCategory.getName());
-        return categoryMapper.toDto(categoryRepository.save(globalCategory));
+        return categoryMapper.toDto(globalCategory);
     }
 
 }

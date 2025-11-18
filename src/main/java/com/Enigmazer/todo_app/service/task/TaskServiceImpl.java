@@ -11,7 +11,10 @@ import com.Enigmazer.todo_app.service.JWTService;
 import com.Enigmazer.todo_app.service.category.CategoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,15 +44,18 @@ public class TaskServiceImpl implements TaskService {
     public TaskResponseDTO createTask(TaskCreationOrUpdateRequest task) {
         log.info("Creating new task for user: {}", jwtService.getCurrentUser().getEmail());
 
-        Task newTask = new Task();
-        newTask.setCategory(categoryService.getCategoryById(task.getCategoryId()));
-        newTask.setUser(jwtService.getCurrentUser());
-        newTask.setTitle(task.getTitle());
-        newTask.setDescription(task.getDescription());
-        newTask.setDueDate(task.getDueDate());
+        Task saved = taskRepository.save(
+                Task.builder()
+                        .category(categoryService.getCategoryById(task.getCategoryId()))
+                        .user(jwtService.getCurrentUser())
+                        .title(task.getTitle())
+                        .description(task.getDescription())
+                        .dueDate(task.getDueDate())
+                        .build()
+        );
 
-        Task saved = taskRepository.save(newTask);
         log.info("Task '{}' created successfully with ID: {}", saved.getTitle(), saved.getId());
+
         return taskMapper.toDto(saved);
     }
 

@@ -2,17 +2,19 @@ package com.Enigmazer.todo_app.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * Represents a category for organizing tasks in the todo application.
  * Categories can be either user-specific or global, and are used to group related tasks together.
  * Each category is associated with a user (unless it's a global category).
  */
-@Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Entity
 @Table(
         name = "category",
         indexes = @Index(name = "idx_user", columnList = "user_id")
@@ -38,6 +40,8 @@ public class Category {
      * Global categories are available to all users.
      * Default value is false.
      */
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Builder.Default
     private boolean isGlobal = false;
 
     /**

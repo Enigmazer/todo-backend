@@ -1,9 +1,7 @@
 package com.Enigmazer.todo_app.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 
@@ -11,10 +9,12 @@ import java.time.Instant;
  * Represents a refresh token used for maintaining user authentication sessions.
  * This entity is used to generate new access tokens without requiring users to log in again.
  */
-@Entity
 @Getter
 @Setter
-@NoArgsConstructor
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Entity
 public class RefreshToken {
 
     /**
@@ -50,7 +50,8 @@ public class RefreshToken {
      * Flag indicating whether this refresh token has been revoked.
      * If true, the token cannot be used to obtain new access tokens.
      */
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Builder.Default
     private boolean revoked = false;
 
     /**

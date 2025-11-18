@@ -11,9 +11,12 @@ import java.time.Instant;
  * Each task belongs to a user and can be associated with a category.
  * The entity includes features like due dates, completion status, and email notifications.
  */
-@Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Entity
 @Table(
         name = "task",
         indexes = {
@@ -59,21 +62,24 @@ public class Task {
      * Defaults to false when a new task is created.
      */
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private boolean isCompleted;
+    @Builder.Default
+    private boolean isCompleted = false;
 
     /**
      * Flag to enable or disable email notifications for this task.
      * When enabled, the system can send reminders about upcoming or overdue tasks.
      */
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private boolean isEmailEnabled;
+    @Builder.Default
+    private boolean isEmailEnabled = false;
 
     /**
      * Indicates whether a reminder for this task has been sent.
      * Used to prevent sending duplicate reminders.
      */
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private boolean isReminderSent;
+    @Builder.Default
+    private boolean isReminderSent = false;
 
     /**
      * The timestamp when the task was created.

@@ -42,7 +42,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = new DefaultOAuth2UserService().loadUser(request);
+        OAuth2User oAuth2User = fetchOAuth2User(request);
 
         String provider = request.getClientRegistration().getRegistrationId(); // google or github
         String providerId =
@@ -95,12 +95,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     "registered via another sign-in method. Try signing in using that method.");
         } else {
             log.info("adding new user to database using Oauth2 : {}", email);
-            user = new User();
-            user.setName(name);
-            user.setEmail(email);
-            user.setProvider(provider);
-            user.setProviderId(providerId);
-            user.setRoles(Set.of(RoleConstants.ROLE_USER));
+            user = User.builder()
+                    .name(name)
+                    .email(email)
+                    .provider(provider)
+                    .providerId(providerId)
+                    .roles(Set.of(RoleConstants.ROLE_USER))
+                    .build();
             userRepository.save(user);
             log.info("user successfully added in the database : {}", user.getEmail());
         }
@@ -122,7 +123,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         );
     }
 
-    private String getEmailPrefix(String email){
+    String getEmailPrefix(String email){
         if(email != null && email.contains("@")){
             return email.substring(0, email.indexOf('@'));
         }
@@ -166,4 +167,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
         return null;
     }
+
+    protected OAuth2User fetchOAuth2User(OAuth2UserRequest request) {
+        return super.loadUser(request);
+    }
+
 }
