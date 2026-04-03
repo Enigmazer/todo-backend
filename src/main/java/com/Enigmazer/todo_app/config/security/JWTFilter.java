@@ -4,6 +4,7 @@ import com.Enigmazer.todo_app.service.JWTService;
 import io.micrometer.common.lang.NonNullApi;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,13 +21,6 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * JWTFilter intercepts each incoming HTTP request, checks for a Bearer token,
- * validates the token using {@link JWTService}, and sets the Spring SecurityContext
- * with the authenticated user if valid.
- * <p>
- * This allows stateless authentication across the application.
- */
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -35,40 +29,45 @@ public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTService jwtService;
 
-    /**
-     * Intercepts each request, extracts access token from Authorization
-     * header, and authenticates the user if the token is valid.
-     *
-     * @param request     incoming HTTP request
-     * @param response    outgoing HTTP response
-     * @param filterChain remaining filters in the chain
-     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request){
+        String path = request.getServletPath();
+        // These paths manage token issuance/rotation and must be reachable without a valid access token
+        return path.startsWith("/auth/login")
+                || path.startsWith("/auth/refresh")
+                || path.startsWith("/oauth2");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
         String token = null;
-        String email = null;
-
-        // Only process requests that have access token
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            try {
-                log.debug("Extracting email from access token.");
-                email = jwtService.extractUsername(token);
-                log.debug("Email is successfully extracted from the access token: {}", email);
-            } catch (Exception e) {
-                log.warn("Invalid access token: {}", e.getMessage());
-                // Don't return here - let Spring Security handle the authorization
+        String email= null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
             }
         }
 
-        // If we have a valid email and no existing authentication, set up the security context
+        if (token == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        try {
+            email = jwtService.extractUsername(token);
+            log.debug("Email is successfully extracted from the access token: {}", email);
+        } catch (Exception e) {
+            log.warn("Invalid access token: {}", e.getMessage());
+        }
+
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                log.debug("Authenticating user: {}", email);
                 Set<String> role = jwtService.extractRole(token);
                 Set<GrantedAuthority> authorities = role.stream()
                         .map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
@@ -81,15 +80,12 @@ public class JWTFilter extends OncePerRequestFilter {
                     log.debug("Authentication successful for user: {}", email);
                 } else {
                     log.warn("Access token validation failed for user: {}", email);
-                    // Don't return here - let Spring Security handle the authorization
                 }
             } catch (Exception e) {
                 log.error("User authentication failed for email {}: {}", email, e.getMessage());
-                // Don't return here - let Spring Security handle the authorization
             }
         }
 
-        // Continue the filter chain let Spring Security decide if authentication is required
         filterChain.doFilter(request, response);
     }
 

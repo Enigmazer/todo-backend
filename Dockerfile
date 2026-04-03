@@ -10,10 +10,11 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 
 # Run tests first
-RUN mvn test -Ptest -Dtest=!TodoAppApplicationTests
+RUN mvn test -Dtest=!TodoAppApplicationTests
+
 
 # Package the app (skip tests in prod build)
-RUN mvn clean package -Pprod -DskipTests
+RUN mvn clean package -DskipTests
 
 # Stage 2: run with slim JRE
 FROM eclipse-temurin:21-jre

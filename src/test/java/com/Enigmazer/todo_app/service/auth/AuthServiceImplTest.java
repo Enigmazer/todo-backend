@@ -59,19 +59,6 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void logout_ShouldInvalidateTokens() {
-        String accessToken = "token";
-        User user = User.builder()
-                .email("user@example.com")
-                .build();
-        when(jwtService.getCurrentUser()).thenReturn(user);
-
-        authService.logout(accessToken);
-
-        verify(jwtService).invalidateTokens(accessToken);
-    }
-
-    @Test
     void changePassword_ShouldUpdatePassword() {
         UserLoginRequest request = UserLoginRequest.builder()
                 .email("user@example.com")

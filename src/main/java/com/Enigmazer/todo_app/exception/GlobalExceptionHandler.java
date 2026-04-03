@@ -9,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,11 +17,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-// this class is for handling exceptions manually
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(Exception.class) // Fallback for all other exceptions that I haven’t handled
+    @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
         return generateResponse("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -65,6 +65,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<?> handleDisabled(DisabledException ex) {
+        return generateResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(OAuth2AuthenticationException.class)
+    public ResponseEntity<?> handleOAuthException(OAuth2AuthenticationException ex) {
         return generateResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 

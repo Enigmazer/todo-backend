@@ -10,31 +10,22 @@ import com.Enigmazer.todo_app.service.JWTService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * Implementation of the {@link CategoryService} interface.
- * <p>
- * This service manages operations related to categories,
- * including creation, fetching, and deletion of user-specific categories.
- */
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final JWTService jwtService;
     private final CategoryMapper categoryMapper;
-    
-    /**
-     * Adds a new category for the currently authenticated user.
-     *
-     * @param category The category creation request containing the name
-     * @return DTO of the saved category
-     */
+
     @Override
+    @Transactional
     public CategoryResponseDTO createCategory(CategoryCreationRequest category) {
         log.info("Attempting to add category: {}", category.getName());
 
@@ -50,12 +41,8 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toDto(newCategory);
     }
 
-    /**
-     * Fetches all available categories for the current user.
-     *
-     * @return List of user-specific categories
-     */
     @Override
+    @Transactional(readOnly = true)
     public List<CategoryResponseDTO> getCategories() {
         Long userId = jwtService.getCurrentUser().getId();
         log.info("Fetching categories for user ID: {}", userId);
@@ -68,13 +55,8 @@ public class CategoryServiceImpl implements CategoryService {
                 .toList();
     }
 
-    /**
-     * Fetch a specific category by ID and user ID.
-     *
-     * @param categoryId ID of the category
-     * @return Category if exists and belongs to current user
-     */
     @Override
+    @Transactional(readOnly = true)
     public Category getCategoryById(Long categoryId) {
         Long userId = jwtService.getCurrentUser().getId();
         log.info("Fetching category ID: {} for user ID: {}", categoryId, userId);
@@ -86,18 +68,8 @@ public class CategoryServiceImpl implements CategoryService {
                 });
     }
 
-    /**
-     * Updates an existing category with new details.
-     * Only the owner of the category can update it.
-     * and global categories can not be updated by normal users.
-     *
-     * @param categoryId The ID of the category to update
-     * @param category The updated category details
-     * @return A DTO containing the updated category's information
-     * @throws ResourceNotFoundException if the category is not found
-     * @throws IllegalArgumentException if the category is not owned by the current user
-     */
     @Override
+    @Transactional
     public CategoryResponseDTO updateCategory(Long categoryId,CategoryCreationRequest category){
         Category existingCategory = getCategoryById(categoryId);
         if (existingCategory.isGlobal()) {
@@ -108,12 +80,8 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toDto(categoryRepository.save(existingCategory));
     }
 
-    /**
-     * Deletes a category by ID if it's not marked as global.
-     *
-     * @param categoryId ID of the category to delete
-     */
     @Override
+    @Transactional
     public void deleteCategory(Long categoryId) {
         log.info("Deletion request received for category ID: {}", categoryId);
         Category category = getCategoryById(categoryId);
@@ -132,12 +100,6 @@ public class CategoryServiceImpl implements CategoryService {
         log.info("Category deleted successfully (ID: {})", categoryId);
     }
 
-    /**
-     * Counts the total number of categories available to the current user.
-     * This includes both user-specific categories and global categories.
-     *
-     * @return The total count of accessible categories
-     */
     @Override
     public Integer countCategories(){
         return categoryRepository.countCategories(jwtService.getCurrentUser().getId());

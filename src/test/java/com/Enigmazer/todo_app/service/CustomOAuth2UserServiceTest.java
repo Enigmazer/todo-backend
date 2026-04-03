@@ -1,6 +1,6 @@
 package com.Enigmazer.todo_app.service;
 
-import com.Enigmazer.todo_app.constants.RoleConstants;
+import com.Enigmazer.todo_app.enums.RoleType;
 import com.Enigmazer.todo_app.model.User;
 import com.Enigmazer.todo_app.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,7 @@ class CustomOAuth2UserServiceTest {
 
         assertThat(saved.getEmail()).isEqualTo("user@example.com");
         assertThat(saved.getProvider()).isEqualTo("google");
-        assertThat(saved.getRoles()).containsExactly(RoleConstants.ROLE_USER);
+        assertThat(saved.getRoles()).containsExactly(RoleType.USER.toString());
         assertThat(result).isInstanceOf(DefaultOAuth2User.class);
     }
 

@@ -3,9 +3,22 @@ server:
   servlet:
     context-path: /api
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+  health:
+    mail:
+      enabled: false
+
 jwt:
-  accessTokenExpiry: 15m  # or 1h, or 3d
-  refreshTokenExpiry: 7d  # or 1h, or 3d
+  accessTokenExpiry: 15m
+  refreshTokenExpiry: 7d
+  secret: ${JWT_SECRET}
 
 frontend:
   url: ${FRONTEND_URL}

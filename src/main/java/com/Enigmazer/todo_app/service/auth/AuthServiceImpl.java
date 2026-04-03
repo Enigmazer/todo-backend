@@ -15,16 +15,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
-/**
- * AuthServiceImpl is the implementation of {@link AuthService} that
- * handles business logic for user authentication and password management.
- */
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
@@ -33,13 +31,8 @@ public class AuthServiceImpl implements AuthService {
     private final JWTService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    /**
-     * Verifies the provided credentials and return a token pair if valid.
-     *
-     * @param dto a {@link UserLoginRequest} containing login details
-     * @return Token pair containing access and refresh token
-     */
     @Override
+    @Transactional
     public TokenPair login(UserLoginRequest dto) {
         log.info("User with email {} is trying to log in", dto.getEmail());
         manager.authenticate(
@@ -48,35 +41,16 @@ public class AuthServiceImpl implements AuthService {
         return jwtService.generateTokens(dto.getEmail());
     }
 
-    /**
-     * Takes the accessToken and invalidate both
-     * access and refresh token using {@link JWTService}
-     * so anyone won't be able to use those same tokens
-     * again for accessing any end point ensuring
-     * secure logout
-     *
-     * @param accessToken the access token to invalidate
-     */
     @Override
-    public void logout(String accessToken){
-        String email = jwtService.getCurrentUser().getEmail();
-        log.info("logging out the user: {}", email);
-
-        if (accessToken != null && !accessToken.isBlank()) {
-            jwtService.invalidateTokens(accessToken);
-            log.info("Tokens are invalidated for user: {}", email);
-        }
-        log.info("User {} is successfully logged out.", email);
+    @Transactional
+    public void logout(String refreshToken){
+        refreshTokenRepository.deleteByToken(refreshToken);
+        log.info("User logged out successfully");
     }
 
-    /**
-     * Changes the password for the current user.
-     *
-     * @param request contains email and new password
-     */
     @Override
+    @Transactional
     public void changePassword(UserLoginRequest request) {
-        log.info("Password change request for: {}", request.getEmail());
         User currentUser = jwtService.getCurrentUser();
         compareEmail(currentUser.getEmail(), request.getEmail());
 
@@ -86,11 +60,6 @@ public class AuthServiceImpl implements AuthService {
         log.info("Password successfully updated for: {}", currentUser.getEmail());
     }
 
-    /**
-     * Retrieves the latest refresh token for the current user
-     * @return refresh token string
-     * @throws ResourceNotFoundException if no refresh token is found for the user
-     */
     @Override
     public String getLatestRefreshTokenForUser() {
         return refreshTokenRepository
@@ -99,13 +68,6 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("No refresh token found for this user."));
     }
 
-    /**
-     * Ensures the email making the request matches the currently logged-in user.
-     *
-     * @param realEmail email of the logged-in user
-     * @param compareEmail email from the request
-     * @throws AccessDeniedException if the emails don't match
-     */
     public void compareEmail(String realEmail, String compareEmail) {
         if (!realEmail.equals(compareEmail)) {
             log.error("Email mismatch: current user={}, requested={}", realEmail, compareEmail);
