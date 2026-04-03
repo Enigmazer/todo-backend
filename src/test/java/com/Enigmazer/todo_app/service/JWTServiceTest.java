@@ -17,10 +17,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
@@ -37,40 +36,31 @@ class JWTServiceTest {
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
 
-    @Mock
-    private TokenBlacklistService tokenBlacklistService;
-
-    @Mock
-    private KeyLoader keyLoader;
-
     @InjectMocks
     private JWTService jwtService;
 
-    private KeyPair keyPair;
     private User testUser;
 
     @BeforeEach
-    void setUp() throws Exception {
-        // Generate in-memory RSA keypair for JWT signing
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-        keyGen.initialize(2048);
-        keyPair = keyGen.generateKeyPair();
-
-        when(keyLoader.loadKeyPair(anyString(), anyString())).thenReturn(keyPair);
-
-        // Initialize test user
+    void setUp() {
+        // 1. Initialize the testUser and assign necessary fields
         testUser = User.builder()
                 .email("test@example.com")
-                .roles(Set.of("USER"))
-                .lastLogin(Instant.now())
+                .roles(Set.of("ROLE_USER"))
                 .build();
 
-        // Manually re-inject keyPair after construction
-        jwtService = new JWTService(userRepository, tokenBlacklistService, refreshTokenRepository, keyLoader);
+        // 2. Set up the service
+        jwtService = new JWTService(userRepository, refreshTokenRepository);
 
-        // Set expiry durations using Reflection (since @Value is not processed in unit tests)
+        ReflectionTestUtils.setField(jwtService, "secretKey",
+                Base64.getEncoder().encodeToString("this-is-a-very-secure-test-key-1234567890".getBytes())
+        );
+
         ReflectionTestUtils.setField(jwtService, "accessTokenExpiry", Duration.ofMinutes(5));
         ReflectionTestUtils.setField(jwtService, "refreshTokenExpiry", Duration.ofDays(7));
+
+        // 3. manually trigger @PostConstruct
+        ReflectionTestUtils.invokeMethod(jwtService, "initKey");
     }
 
     // Token Generation Tests
@@ -93,20 +83,9 @@ class JWTServiceTest {
     void isAccessTokenValid_ShouldReturnTrue_ForValidToken() {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
-        when(tokenBlacklistService.isTokenBlacklisted(anyString())).thenReturn(false);
 
         String token = jwtService.generateTokens("test@example.com").accessToken();
         assertTrue(jwtService.isAccessTokenValid(token));
-    }
-
-    @Test
-    void isAccessTokenValid_ShouldReturnFalse_ForBlacklistedToken() {
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-        when(tokenBlacklistService.isTokenBlacklisted(anyString())).thenReturn(true);
-
-        String token = jwtService.generateTokens("test@example.com").accessToken();
-        assertFalse(jwtService.isAccessTokenValid(token));
     }
 
     @Test
@@ -134,7 +113,7 @@ class JWTServiceTest {
         String token = jwtService.generateTokens("test@example.com").accessToken();
         Set<String> roles = jwtService.extractRole(token);
 
-        assertTrue(roles.contains("USER"));
+        assertTrue(roles.contains("ROLE_USER"));
     }
 
     // Refresh Token Tests
@@ -162,24 +141,6 @@ class JWTServiceTest {
     void renewTokens_ShouldThrowException_ForInvalidRefreshToken() {
         when(refreshTokenRepository.findByToken(anyString())).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> jwtService.renewTokens("invalid"));
-    }
-
-    // Invalidation Tests
-    @Test
-    void invalidateTokens_ShouldBlacklistAccessToken_AndDeleteRefreshToken() {
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(authentication.getName()).thenReturn("test@example.com");
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        String token = jwtService.generateTokens("test@example.com").accessToken();
-        jwtService.invalidateTokens(token);
-
-        verify(tokenBlacklistService, atLeastOnce()).blacklistToken(anyString(), any());
-        verify(refreshTokenRepository).deleteByUser(testUser);
     }
 
     @Test
@@ -211,17 +172,6 @@ class JWTServiceTest {
         when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
         assertThrows(UsernameNotFoundException.class, () -> jwtService.getCurrentUser());
-    }
-
-    @Test
-    void extractTokenId_ShouldReturnNonNullId() {
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-
-        String token = jwtService.generateTokens("test@example.com").accessToken();
-        String jti = jwtService.extractTokenId(token);
-
-        assertNotNull(jti);
     }
 
     @Test

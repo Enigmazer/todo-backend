@@ -1,10 +1,4 @@
 spring:
-  cache:
-    caffeine:
-      spec: maximumSize = 1, expireAfterWrite = 10m
-  data:
-    redis:
-      url: ${REDIS_URL}
   jpa:
     hibernate:
       ddl-auto: none

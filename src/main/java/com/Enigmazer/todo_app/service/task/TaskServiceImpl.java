@@ -16,17 +16,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * {@code TaskServiceImpl} provides the business logic for managing tasks.
- * It supports creating, updating, completing, searching, and deleting tasks,
- * all scoped to the authenticated user via {@link JWTService}.
- */
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
@@ -34,13 +31,8 @@ public class TaskServiceImpl implements TaskService {
     private final CategoryService categoryService;
     private final TaskMapper taskMapper;
 
-    /**
-     * Adds a new task to the database.
-     *
-     * @param task The task creation request
-     * @return The saved task as a DTO
-     */
     @Override
+    @Transactional
     public TaskResponseDTO createTask(TaskCreationOrUpdateRequest task) {
         log.info("Creating new task for user: {}", jwtService.getCurrentUser().getEmail());
 
@@ -59,13 +51,6 @@ public class TaskServiceImpl implements TaskService {
         return taskMapper.toDto(saved);
     }
 
-    /**
-     * Fetches a task by ID and ensures ownership.
-     *
-     * @param taskId ID of the task to fetch
-     * @return The task entity
-     * @throws ResourceNotFoundException if task doesn't exist or user doesn't own it
-     */
     @Override
     public Task getTaskById(long taskId) {
         log.debug("Fetching task by ID: {}", taskId);
@@ -84,16 +69,6 @@ public class TaskServiceImpl implements TaskService {
         return task;
     }
 
-    /**
-     * Returns paginated and filtered task list for the current user.
-     *
-     * @param status        Completed or not
-     * @param sortDirection asc or desc
-     * @param sortBy        Field to sort (dueDate or lastUpdatedAt)
-     * @param categoryId    Optional filter
-     * @param page          Page number
-     * @return Paginated list of tasks as DTOs
-     */
     @Override
     public Page<TaskResponseDTO> getTasks(
             Boolean status,
@@ -125,14 +100,6 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
-
-    /**
-     * Searches user's tasks by keyword in title or description.
-     *
-     * @param keyword Search keyword
-     * @param page    Page number
-     * @return Paginated results of matching tasks
-     */
     @Override
     public Page<TaskResponseDTO> searchTasks(String keyword, int page) {
         page = getTaskPage(page);
@@ -143,12 +110,6 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.searchTasks(userId, keyword, pageable).map(taskMapper::toDto);
     }
 
-    /**
-     * Check is the page number is bigger than 500 and if it is bigger, then reset it to 0
-     *
-     * @param page the page number
-     * @return the page number
-     */
     private int getTaskPage(int page){
         if (page > 500) {
             log.warn("Page number too high ({}), resetting to 0", page);
@@ -157,13 +118,8 @@ public class TaskServiceImpl implements TaskService {
         return page;
     }
 
-    /**
-     * Change the completion status of the task and also change the reminder sent flag accordingly.
-     *
-     * @param taskId ID of the task
-     * @return The updated task as DTO
-     */
     @Override
+    @Transactional
     public TaskResponseDTO toggleTaskCompletion(long taskId) {
         log.info("changing task ID: {} status", taskId);
         Task task = getTaskById(taskId);
@@ -174,13 +130,8 @@ public class TaskServiceImpl implements TaskService {
         return taskMapper.toDto(task);
     }
 
-    /**
-     * Change the email notification status of the task.
-     *
-     * @param taskId The ID of the task to update
-     * @return The updated task as DTO
-     */
     @Override
+    @Transactional
     public TaskResponseDTO toggleTaskNotification(long taskId) {
         log.info("changing send email state (taskId={})", taskId);
         Task task = getTaskById(taskId);
@@ -190,14 +141,8 @@ public class TaskServiceImpl implements TaskService {
         return taskMapper.toDto(task);
     }
 
-    /**
-     * Updates the task details.
-     *
-     * @param taskId ID of the task
-     * @param task   Updated task values
-     * @return The updated task as DTO
-     */
     @Override
+    @Transactional
     public TaskResponseDTO updateTask(long taskId, TaskCreationOrUpdateRequest task) {
         log.info("Updating task ID: {}", taskId);
 
@@ -219,12 +164,8 @@ public class TaskServiceImpl implements TaskService {
         return taskMapper.toDto(taskRepository.save(existingTask));
     }
 
-    /**
-     * Deletes a list of tasks after validating ownership.
-     *
-     * @param taskIds ID of the task
-     */
     @Override
+    @Transactional
     public void deleteTasks(List<Long> taskIds) {
         log.info("Deleting task ID: {}", taskIds);
 
@@ -234,31 +175,16 @@ public class TaskServiceImpl implements TaskService {
         log.info("Task ID: {} deleted", taskIds);
     }
 
-    /**
-     * Counts the total number of tasks for the current user.
-     * @return The total count of tasks
-     */
     @Override
     public Integer countTasks(){
         return taskRepository.countTasks(jwtService.getCurrentUser().getId());
     }
 
-    /**
-     * Counts the number of completed tasks for the current user.
-     *
-     * @return The count of completed tasks
-     */
     @Override
     public Integer countCompletedTasks(){
         return taskRepository.countCompletedTasks(jwtService.getCurrentUser().getId());
     }
 
-    /**
-     * Counts the number of tasks in a specific category for the current user.
-     *
-     * @param categoryId The ID of the category
-     * @return The count of tasks in the specified category
-     */
     @Override
     public Integer countTasksInCategory(Long categoryId){
         return taskRepository.countTasksInCategory(jwtService.getCurrentUser().getId(), categoryId);

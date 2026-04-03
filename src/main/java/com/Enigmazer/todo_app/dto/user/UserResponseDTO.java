@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.Set;
 
 @Getter
 @Builder
@@ -17,6 +18,7 @@ public class UserResponseDTO {
 
     private String name;
     private String email;
+    private Set<String> roles;
     private Instant createdAt;
     private Instant updatedAt;
 

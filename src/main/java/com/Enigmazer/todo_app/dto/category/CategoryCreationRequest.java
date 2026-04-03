@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Request body for category creation request")
 public class CategoryCreationRequest {
 
     @Schema(

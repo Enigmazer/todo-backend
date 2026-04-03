@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Request body for user login API")
 public class UserRegistrationRequest {
 
     @Schema(

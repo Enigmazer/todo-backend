@@ -6,26 +6,13 @@ import lombok.*;
 
 import java.time.Instant;
 
-/**
- * Represents a task in the todo application.
- * Each task belongs to a user and can be associated with a category.
- * The entity includes features like due dates, completion status, and email notifications.
- */
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Entity
-@Table(
-        name = "task",
-        indexes = {
-                @Index(name = "idx_task_user_update", columnList = "user_id, lastUpdatedAt"),
-                @Index(name = "idx_task_user_update_status", columnList = "user_id, lastUpdatedAt, isCompleted"),
-                @Index(name = "idx_task_user_due", columnList = "user_id, dueDate"),
-                @Index(name = "idx_task_user_due_status", columnList = "user_id, dueDate, isCompleted")
-        }
-)
+@Table(name = "task")
 public class Task {
 
     /**

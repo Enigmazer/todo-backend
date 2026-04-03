@@ -9,15 +9,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * UserDetailsServiceImpl loads user from database and
- * map it to the UserDetails and return it So it can be
- * handled by the authentication provider.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,31 +21,17 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    /**
-     *  loadUserByUsername method is normally called when a user logs in,
-     *  but if they use oauth2 to log in, then this method will be not
-     *  called until the first request with jwt token comes
-     *
-     * @param email the username identifying the user whose data is required.
-     * @return UserDetails which is handled or supported by authentication provider for authentication
-     * @throws UsernameNotFoundException if the email is not found in the database
-     */
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        log.debug("Trying to load user {} from the database", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        log.info("User {} is successfully loaded from the database", user.getEmail());
-
-        // Convert roles from Set<String> to Set<GrantedAuthority>
         Set<SimpleGrantedAuthority> authorities = user.getRoles()
                 .stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet());
-
-        log.debug("Mapped roles for {}: {}", email, authorities);
 
         // Avoid null password issue for OAuth2 users
         String safePassword = user.getPassword() == null ? "" : user.getPassword();
@@ -57,9 +39,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         log.info("Mapping the user {} to userDetails and returning it", user.getEmail());
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
-                .password(safePassword) // Prevent IllegalArgumentException
+                .password(safePassword)
                 .authorities(authorities)
-                .disabled(!user.isEnabled()) // Correctly reflect 'enabled' field
+                .disabled(!user.isEnabled())
                 .build();
     }
 }

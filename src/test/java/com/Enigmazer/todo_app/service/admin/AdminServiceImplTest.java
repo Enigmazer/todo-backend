@@ -1,9 +1,9 @@
 package com.Enigmazer.todo_app.service.admin;
 
-import com.Enigmazer.todo_app.constants.RoleConstants;
 import com.Enigmazer.todo_app.dto.category.CategoryCreationRequest;
 import com.Enigmazer.todo_app.dto.category.CategoryResponseDTO;
 import com.Enigmazer.todo_app.dto.user.UserRegistrationRequest;
+import com.Enigmazer.todo_app.enums.RoleType;
 import com.Enigmazer.todo_app.exception.CustomExceptions.DuplicateResourceException;
 import com.Enigmazer.todo_app.exception.CustomExceptions.ResourceNotFoundException;
 import com.Enigmazer.todo_app.mapper.CategoryMapper;
@@ -55,7 +55,7 @@ class AdminServiceImplTest {
 
         assertThat(savedUser.getEmail()).isEqualTo("admin@example.com");
         assertThat(savedUser.getPassword()).isEqualTo("encodedPassword");
-        assertThat(savedUser.getRoles()).isEqualTo(Set.of(RoleConstants.ROLE_ADMIN));
+        assertThat(savedUser.getRoles()).isEqualTo(Set.of(RoleType.ADMIN.toString()));
         assertThat(savedUser.getProvider()).isEqualTo("local");
     }
 

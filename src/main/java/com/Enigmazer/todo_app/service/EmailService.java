@@ -6,27 +6,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Service responsible for sending email notifications.
- * Handles the construction and sending of HTML-formatted emails.
- */
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    /**
-     * Sends an HTML-formatted email notification for task reminders.
-     * The email includes the task title and due date in a styled format.
-     *
-     * @param to The recipient's email address
-     * @param name The recipient's full name
-     * @param subject The email subject line
-     * @param taskTitle The title of the task being reminded about
-     * @throws MessagingException if there is an error sending the email
-     */
+    @Transactional
     public void sendTaskReminder(String to, String name, String subject, String taskTitle)
             throws MessagingException{
 
@@ -56,32 +44,4 @@ public class EmailService {
         helper.setText(htmlContent, true);
         mailSender.send(message);
     }
-//
-//    /**
-//     * Sends an email notification for support.
-//     * The email includes the user's name, support category, subject and message.
-//     *
-//     * @param name The user's name
-//     * @param subject The support subject
-//     * @param message The support message
-//     * @throws MessagingException if there is an error sending the email
-//     */
-//    public void sendSupportEmail(String name, String email, String subject, String category,
-//                                 String message) throws MessagingException {
-//
-//        MimeMessage mimeMessage = mailSender.createMimeMessage();
-//        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false); // plain text
-//
-//        helper.setTo("arundangi660@gmail.com");
-//        helper.setSubject(subject);
-//        helper.setText(
-//                "Name: " + name + "<br>" +
-//                        "Email: " + email + "<br>" +
-//                        "Category: " + category + "<br>" +
-//                        "Message: " + message, true
-//        );
-//
-//        mailSender.send(mimeMessage);
-//    }
-
 }

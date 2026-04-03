@@ -9,14 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * UserController handles user related operations.
- * <p>
- * user controller handles operations like:
- * <ul>
- *     <li>Returning a self object to display profile details</li>
- * </ul>
- */
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -25,12 +17,6 @@ public class UserController {
 
     private final UserService userService;
 
-    /**
-     * returns an object containing public
-     * details of the logged-in user
-     *
-     * @return details of logged-in user
-     */
     @GetMapping("/me")
     public ResponseEntity<UserResponseDTO> getCurrentUser(){
         UserResponseDTO user = userService.getCurrentUser();

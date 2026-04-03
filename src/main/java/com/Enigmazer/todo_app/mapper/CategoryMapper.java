@@ -5,9 +5,6 @@ import com.Enigmazer.todo_app.model.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-/**
- * Mapper class for mapping {@link Category} object to {@link CategoryResponseDTO}
- */
 @Mapper(componentModel = "spring")
 public interface CategoryMapper {
 
